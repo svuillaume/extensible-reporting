@@ -3,376 +3,606 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSA Report</title>
+    <title>Cloud Security Assessment Report - {{customer}}</title>
     <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css">
     <style type="text/css">
-        @media (prefers-color-scheme: dark) {
-          :root {
-            --nc-tx-1: #000000;
-            --nc-tx-2: #1A1A1A;
-            --nc-bg-1: #FFFFFF;
-            --nc-lk-1: #0070F3;
-            --nc-lk-2: #0366D6;
-            --nc-lk-tx: #FFFFFF;
-            --nc-ac-1: #79FFE1;
-            --nc-ac-tx: #0C4047;
-          }
+        :root {
+            --color-critical: #DC2626;
+            --color-critical-bg: #FEE2E2;
+            --color-high: #EA580C;
+            --color-high-bg: #FFEDD5;
+            --color-medium: #CA8A04;
+            --color-medium-bg: #FEF3C7;
+            --color-low: #2563EB;
+            --color-low-bg: #DBEAFE;
+            --color-success: #16A34A;
+            --color-success-bg: #DCFCE7;
+            --color-primary: #307FE2;
+            --color-primary-dark: #1E5BB8;
+            --color-text: #1F2937;
+            --color-text-light: #6B7280;
+            --color-border: #E5E7EB;
+            --color-bg-light: #F9FAFB;
         }
+
         @media print {
-          {% if pagesize %}
-          @page {
-            size: {{pagesize}} landscape;
-          }
-          {% endif %}
-          img {visibility: visible !important;}
-          table {transform: scale(1);}
-          td, th {
-            max-width: 150px;
-            word-wrap: break-word;
-          }
-          p {break-inside: avoid;}
-          div {break-inside: avoid;}
-          .pagebreak { page-break-after: always; clear: both;}
+            {% if pagesize %}
+            @page {
+                size: {{pagesize}} landscape;
+                margin: 1cm;
+            }
+            {% endif %}
+            img {visibility: visible !important;}
+            table {transform: scale(1);}
+            td, th {
+                max-width: 150px;
+                word-wrap: break-word;
+            }
+            p {break-inside: avoid;}
+            div {break-inside: avoid;}
+            .pagebreak { page-break-after: always; clear: both;}
+            .no-print { display: none !important; }
+            .action-card { break-inside: avoid; }
         }
 
-
-        @font-face {
-          font-family: 'Inter';
-          src: url('Inter-Regular.otf') format('otf');
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-          font-family: 'Inter';
-          width: 95%;
-          max-width: 95%;
-          color: black;
-          background: #FFFFFF no-repeat padding-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            width: 95%;
+            max-width: 1400px;
+            margin: 0 auto;
+            color: var(--color-text);
+            background: #FFFFFF;
+            line-height: 1.6;
+            font-size: 14px;
         }
 
-
+        /* Header Styles */
         header {
-          background: #fff;
-          padding: 2rem;
-
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 3px solid var(--color-primary);
+            margin-bottom: 2rem;
         }
 
         header img {
-          height: 40px;
-          position: relative;
-          top: 50%;
-          transform: translateY(-50%);
+            height: 45px;
         }
 
-
-        .section-one h1 {
-          font-size: 45px;
-          line-height: 60px;
-          letter-spacing: 0px;
-          color: #0000000;
-          border-bottom: none;
+        /* Title Section */
+        .report-title {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
         }
 
-        .section-one h4 {
-          font-size: 26px;
-          line-height: 29px;
-          letter-spacing: 0px;
-          color: #000000;
+        .report-title h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            border: none;
         }
 
-        .section-one p {
-          font-size: 18px;
-          line-height: 23px;
-          letter-spacing: 0px;
-          color: #000000;
-          margin-top: .5rem;
-          font-family: monospace;
-          font-weight: normal;
+        .report-title .subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
         }
 
-        .section-one blockquote {
-          font-size: 18px;
-          line-height: 25px;
-          letter-spacing: 0px;
-          color: #000;
-          border-left: 13px solid #0f0f0f;
-          background: #FFFFFF;
-          padding: 1em;
-          margin-bottom: 1.5rem;
-          margin-top: 1.5rem;
-        }
-
-        .promographicpdf img {
-            display: block;
-            margin: auto;
-            width: 90%;
-        }
-
-        .promographic {
+        .report-title .meta {
+            margin-top: 1.5rem;
             display: flex;
-            justify-content: center;
-        }
-        .promographic img {
-            width: 90%;
-            height: 90%;
-            }
-
-        .section-two h2 {
-          font-size: 40px;
-          line-height: 61px;
-          letter-spacing: 0px;
-          color: #000;
-          border-bottom: none;
-          margin-bottom: 1rem;
+            gap: 2rem;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            opacity: 0.85;
         }
 
-        .section-two p {
-          font-size: 18px;
-          line-height: 25px;
-          letter-spacing: 0px;
-          color: #000;
+        .report-title .meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .section-two ul {
-          font-size: 18px;
-          line-height: 25px;
-          letter-spacing: 0px;
-          color: #000;
-        }
-
-        .section-two li {
-          list-style: none;
-          font-size: 16px;
-        }
-
-        .section-two li::before {
-          content: "\2022";
-          color: #000000;
-          display: inline-block;
-          font-size: 12px;
-          padding-right: 12px;
-        }
-
-        .section-two .boxes {
-         display: flex;
-         margin-top: 3rem;
-       justify-content: center;
-        }
-
-        .section-two .box {
-          display: flex;
-          flex-direction: column;
-          flex-basis: 75%;
-          margin-left: 15px;
-        }
-
-        .section-two .box:first-child {
-          margin-left: 0;
-        }
-
-        .section-two .boxtitle p {
-          display: flex;
-          justify-content: center;
-          height: 30px;
-          align-items: start;
-          font-size: 12px;
-          line-height: 12px;
-          letter-spacing: 0px;
-          color: #fff;
-          background: #307FE2;
-          padding: 15px 20px;
-          margin-bottom: 0;
-          text-align: center;
-          border-radius:24px 24px 0 0;
-        }
-
-        .section-two .boxcontent {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          font-size: 50px;
-          line-height: 85px;
-          letter-spacing: 0px;
-          color: #000000;
-          border: 1px solid #307FE2;
-          border-radius: 0 0 24px 24px;
-          background: #fff;
-          padding: 15px 20px;
-        }
-
-        .section-three b {
-          font-size: 18px;
-          line-height: 23px;
-          letter-spacing: 0px;
-          color: #000000;
-          font-family: monospace;
-          font-weight: normal;
-        }
-
-        p b {
-          color: #000;
-        }
-
-        h2  {
-          font-size: 40px;
-          line-height: 61px;
-          letter-spacing: 0px;
-          color: #000000;
-          border-bottom: none;
-          clear: both;
+        /* Section Headers */
+        h2 {
+            font-size: 1.75rem;
+            color: var(--color-text);
+            border-bottom: 2px solid var(--color-primary);
+            padding-bottom: 0.75rem;
+            margin: 2.5rem 0 1.5rem 0;
+            clear: both;
         }
 
         h3 {
-          font-size: 42px;
-          line-height: 46px;
-          letter-spacing: 0px;
-          color: #000000;
-          border-bottom: none;
-          clear: both;
+            font-size: 1.35rem;
+            color: var(--color-text);
+            margin: 2rem 0 1rem 0;
+            clear: both;
         }
 
-        h4  {
-          font-size: 26px;
-          line-height: 29px;
-          letter-spacing: 0px;
-          color: #000000;
-          clear: both;
-        }
-
-        ol {
-          font-size: 22px;
-          line-height: 30px;
-          letter-spacing: 0px;
-          color: #000;
-          counter-reset: item;
-          margin-left: 25px;
-        }
-
-        ol li {
-          display: block;
-          position: relative;
-        }
-
-        ol li:before {
-            content: counter(item) ". ";
-            counter-increment: item;
-            color: #000000;
-            position: absolute;
-            left: -25px;
+        h4 {
+            font-size: 1.1rem;
+            color: var(--color-text);
+            margin: 1.5rem 0 1rem 0;
+            clear: both;
         }
 
         p {
-          font-size: 18px;
-          line-height: 25px;
-          letter-spacing: 0px;
-          color: #000;
-          clear: both;
+            margin-bottom: 1rem;
+            color: var(--color-text);
         }
 
+        /* Executive Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--color-border);
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .summary-card.critical {
+            border-top: 4px solid var(--color-critical);
+        }
+
+        .summary-card.high {
+            border-top: 4px solid var(--color-high);
+        }
+
+        .summary-card.warning {
+            border-top: 4px solid var(--color-medium);
+        }
+
+        .summary-card.info {
+            border-top: 4px solid var(--color-primary);
+        }
+
+        .summary-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card.critical .number { color: var(--color-critical); }
+        .summary-card.high .number { color: var(--color-high); }
+        .summary-card.warning .number { color: var(--color-medium); }
+        .summary-card.info .number { color: var(--color-primary); }
+
+        .summary-card .label {
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+            line-height: 1.3;
+        }
+
+        /* Action Cards */
+        .action-section {
+            background: var(--color-bg-light);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .action-section h3 {
+            color: var(--color-primary-dark);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-section h3::before {
+            content: "!";
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .action-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0 0 0;
+        }
+
+        .action-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .action-list li.priority-critical {
+            border-left-color: var(--color-critical);
+            background: var(--color-critical-bg);
+        }
+
+        .action-list li.priority-high {
+            border-left-color: var(--color-high);
+            background: var(--color-high-bg);
+        }
+
+        .action-list li.priority-medium {
+            border-left-color: var(--color-medium);
+            background: var(--color-medium-bg);
+        }
+
+        .action-list .action-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 50%;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .action-list li.priority-critical .action-number { background: var(--color-critical); }
+        .action-list li.priority-high .action-number { background: var(--color-high); }
+        .action-list li.priority-medium .action-number { background: var(--color-medium); }
+
+        .action-content {
+            flex: 1;
+        }
+
+        .action-content strong {
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .action-content p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+        }
+
+        /* Severity Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-critical {
+            background: var(--color-critical-bg);
+            color: var(--color-critical);
+        }
+
+        .badge-high {
+            background: var(--color-high-bg);
+            color: var(--color-high);
+        }
+
+        .badge-medium {
+            background: var(--color-medium-bg);
+            color: var(--color-medium);
+        }
+
+        .badge-low {
+            background: var(--color-low-bg);
+            color: var(--color-low);
+        }
+
+        /* Risk Score Meter */
+        .risk-meter {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+        }
+
+        .risk-meter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .risk-meter-bar {
+            height: 12px;
+            background: #E5E7EB;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .risk-meter-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .risk-meter-fill.critical { background: linear-gradient(90deg, var(--color-high) 0%, var(--color-critical) 100%); }
+        .risk-meter-fill.high { background: linear-gradient(90deg, var(--color-medium) 0%, var(--color-high) 100%); }
+        .risk-meter-fill.medium { background: linear-gradient(90deg, var(--color-low) 0%, var(--color-medium) 100%); }
+        .risk-meter-fill.low { background: var(--color-success); }
+
+        /* Tables */
         table {
-          margin-top: 1.5rem;
-        }
-
-        th {
-          background: unset;
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         thead th {
-          background: #307FE2;
-          color: #fff;
-          font-size: 18px;
-          line-height: 23px;
-          letter-spacing: 0px;
-          font-weight: normal;
+            background: var(--color-primary);
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            text-align: left;
         }
 
-        tr:nth-child(even) {
-          background: #F0F0F0;
+        tbody tr {
+            border-bottom: 1px solid var(--color-border);
         }
 
-        th {
-          padding: 1.5rem;
+        tbody tr:nth-child(even) {
+            background: var(--color-bg-light);
         }
 
-        thead .blank, tbody .level0 {
-          padding: 0;
-          border-spacing: 0;
-          text-align: center;
-          border-left: unset;
-          width: 50px;
+        tbody tr:hover {
+            background: #EBF5FF;
         }
 
         td, th {
-          border-style : hidden!important;
-          font-size: 14px;
-          line-height: 18px;
-          letter-spacing: 0px;
-          color: #000000;
-          font-weight: normal;
-          max-width: 150px;
-          word-wrap: break-word;
+            padding: 0.875rem 1rem;
+            font-size: 0.875rem;
+            max-width: 200px;
+            word-wrap: break-word;
         }
 
         td {
-          padding: 1.5rem;
+            color: var(--color-text);
         }
 
+        /* Info Boxes */
+        .info-box {
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .info-box.tip {
+            background: #EBF5FF;
+            border: 1px solid #93C5FD;
+        }
+
+        .info-box.warning {
+            background: var(--color-medium-bg);
+            border: 1px solid #FCD34D;
+        }
+
+        .info-box.alert {
+            background: var(--color-critical-bg);
+            border: 1px solid #FCA5A5;
+        }
+
+        .info-box-icon {
+            font-size: 1.25rem;
+        }
+
+        .info-box-content {
+            flex: 1;
+        }
+
+        .info-box-content strong {
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Finding Cards */
+        .finding-card {
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .finding-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .finding-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .finding-card-body {
+            color: var(--color-text-light);
+            font-size: 0.9rem;
+        }
+
+        /* TOC / Navigation */
+        .toc {
+            background: var(--color-bg-light);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+            font-size: 1.1rem;
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0 0 0;
+            columns: 2;
+            column-gap: 2rem;
+        }
+
+        .toc-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px dotted var(--color-border);
+        }
+
+        .toc-list a {
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+
+        .toc-list a:hover {
+            text-decoration: underline;
+        }
+
+        /* Promo Section */
+        .promo-section {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .promo-section img {
+            max-width: 90%;
+            height: auto;
+        }
+
+        /* Value Props */
+        .value-props {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .value-prop {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--color-bg-light);
+            border-radius: 8px;
+        }
+
+        .value-prop-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--color-primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .value-prop-text {
+            font-size: 0.9rem;
+        }
+
+        /* Recommendations Section */
         .recommendations {
-          font-size: 22px;
-          line-height: 30px;
-          letter-spacing: 0px;
-          color: #000000;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid #7dd3fc;
         }
 
-        blockquote { font-size:.7em; padding:.7em }
-
-        * {
-          font-size: .9em;
+        .recommendations h2 {
+            border-bottom: none;
+            margin-top: 0;
         }
 
-        table.host_vulns_summary_by_host td.col1.col1 {
-          white-space: pre;
-          text-align: left;
+        .recommendations ol {
+            margin: 1rem 0 0 1.5rem;
         }
-        table.host_vulns_summary_by_host th.row_heading.col1 {
-          white-space: nowrap;
-          width: 15px;
+
+        .recommendations li {
+            margin-bottom: 0.75rem;
+        }
+
+        /* Specific table styles */
+        table.host_vulns_summary_by_host td.col1 {
+            white-space: pre;
+            text-align: left;
         }
 
         table.container_vulns_summary_by_image td.col2 {
-          white-space: pre; text-align:left
-        }
-        table.container_vulns_summary_by_image th.row_heading {
-          white-space: nowrap; width: 15px
-        }
-        table.container_vulns_summary_by_image td.col0 {
-          white-space: nowrap
-        }
-        table.container_vulns_summary_by_image td.col1 {
-          white-space: nowrap
-        }
-        table.container_vulns_summary_by_image td.col3 {
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px
+            white-space: pre;
+            text-align: left;
         }
 
         table.compliance_detail td.col0 {
-          white-space: nowrap
+            white-space: nowrap;
         }
-        table.compliance_detail .col3 {
-          white-space: nowrap
+
+        /* Footer */
+        footer {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: var(--color-bg-light);
+            border-top: 1px solid var(--color-border);
+            text-align: center;
+            color: var(--color-text-light);
+            font-size: 0.85rem;
         }
-        table.compliance_detail .col4 {
-          white-space: nowrap
-        }
-        table.compliance_detail th.col_heading {
-          white-space: nowrap;
-        }
-        table.compliance_detail th.row_heading {
-          white-space: nowrap; width: 15px
-        }
+
+        /* Utilities */
+        .text-center { text-align: center; }
+        .text-muted { color: var(--color-text-light); }
+        .mt-2 { margin-top: 1rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .pagebreak { page-break-after: always; clear: both; }
     </style>
 </head>
 <body>
+
 <header>
     {% if company_logo_html %}
     {{ company_logo_html | safe }}
@@ -380,362 +610,519 @@
     {% if custom_logo_html %}
     {{ custom_logo_html | safe}}
     {% endif %}
-
 </header>
-<br>
-<div class="section-one">
-    <h1>Assessment Report</h1>
-    <h4>Report created for {{customer}}</h4>
-    <p>{{date}}</p>
-    <blockquote>
-        Generated by {{author}}
-        <br>
-        {% set summary_data = [] %}
-        {% if aws_compliance_data %}
-        {% set _ = summary_data.append('AWS Accounts Analyzed: ' ~ aws_compliance_data.cloud_accounts_count) %}
-        {% endif %}
-        {% if azure_compliance_data %}
-        {% set _ = summary_data.append('Azure Subscriptions Analyzed: ' ~ azure_compliance_data.cloud_accounts_count) %}
-        {% endif %}
-        {% if gcp_compliance_data %}
-        {% set _ = summary_data.append('GCP Projects Analyzed: ' ~ gcp_compliance_data.cloud_accounts_count) %}
-        {% endif %}
-        {% if host_vulns_data %}
-        {% set _ = summary_data.append('Hosts Scanned: ' ~ host_vulns_data.hosts_scanned_count) %}
-        {% endif %}
-        {% if container_vulns_data %}
-        {% set _ = summary_data.append('Containers Scanned: ' ~ container_vulns_data.containers_scanned_count) %}
-        {% endif %}
-        {{ summary_data | join(', ') }}
-    </blockquote>
 
-    {% if pdf %}
-        <div class="promographicpdf">
-            {% if polygraph_graphic_html %}
-                {{ polygraph_graphic_html | safe }}
-            {% endif %}
-        </div>
-    {% else %}
-    <div class="promographic">
-        {% if polygraph_graphic_html %}
-            {{ polygraph_graphic_html | safe }}
-        {% endif %}
+<!-- Title Section -->
+<div class="report-title">
+    <h1>Cloud Security Assessment Report</h1>
+    <div class="subtitle">Comprehensive Security Posture Analysis for {{customer}}</div>
+    <div class="meta">
+        <span>Report Date: {{date}}</span>
+        <span>Prepared by: {{author}}</span>
+        {% set scope_items = [] %}
+        {% if aws_compliance_data %}{% set _ = scope_items.append(aws_compliance_data.cloud_accounts_count ~ ' AWS Accounts') %}{% endif %}
+        {% if azure_compliance_data %}{% set _ = scope_items.append(azure_compliance_data.cloud_accounts_count ~ ' Azure Subscriptions') %}{% endif %}
+        {% if gcp_compliance_data %}{% set _ = scope_items.append(gcp_compliance_data.cloud_accounts_count ~ ' GCP Projects') %}{% endif %}
+        {% if host_vulns_data %}{% set _ = scope_items.append(host_vulns_data.hosts_scanned_count ~ ' Hosts') %}{% endif %}
+        {% if container_vulns_data %}{% set _ = scope_items.append(container_vulns_data.containers_scanned_count ~ ' Containers') %}{% endif %}
+        {% if scope_items %}<span>Scope: {{ scope_items | join(' | ') }}</span>{% endif %}
     </div>
-    {% endif %}
 </div>
 
-<div class="section-two">
+<!-- Table of Contents -->
+<div class="toc">
+    <h3>Quick Navigation</h3>
+    <ul class="toc-list">
+        <li><a href="#executive-summary">Executive Summary</a></li>
+        <li><a href="#immediate-actions">Immediate Actions Required</a></li>
+        {% if secrets_data and secrets_data.secrets_count > 0 %}<li><a href="#secrets">Exposed Secrets</a></li>{% endif %}
+        {% if aws_compliance_data or azure_compliance_data or gcp_compliance_data %}<li><a href="#compliance">Compliance Findings</a></li>{% endif %}
+        {% if alerts_data %}<li><a href="#alerts">Security Alerts</a></li>{% endif %}
+        {% if host_vulns_data or container_vulns_data %}<li><a href="#vulnerabilities">Vulnerability Assessment</a></li>{% endif %}
+        <li><a href="#detailed-findings">Detailed Findings</a></li>
+        <li><a href="#recommendations">Recommendations</a></li>
+    </ul>
+</div>
+
+<!-- Executive Summary Section -->
+<section id="executive-summary">
     <h2>Executive Summary</h2>
+
     <p>
-        The purpose of this report is to highlight the assessment findings for {{customer}}. The findings below are
-        representative of the cloud accounts and hosts that were in scope of the engagement and cover cloud compliance
-        and vulnerability findings leveraging FortiCNAPP agentless scanning capabilities. This report provides a
-        detailed summary of each identified area of interest and how it pertains to your overall cloud security and
-        risk.
-    </p>
-    <p>
-        Below is a summary of findings. Additional detail is provided on subsequent pages:
+        This Cloud Security Assessment provides a comprehensive analysis of {{customer}}'s security posture across cloud infrastructure, workloads, and compliance frameworks. The findings below represent actionable intelligence to strengthen your security position.
     </p>
 
-    <div class="boxes">
-        {% if container_vulns_data %}
-        <div class="box">
-            <div class="boxtitle">
-                <p>Total Containers with Critical Vulnerabilities</p>
-            </div>
-            <div class="boxcontent">
-                <span>{{container_vulns_data.critical_vuln_count}}</span>
-            </div>
+    <!-- Key Metrics -->
+    <div class="summary-grid">
+        {% if host_vulns_data %}
+        <div class="summary-card critical">
+            <div class="number">{{host_vulns_data.critical_vuln_count}}</div>
+            <div class="label">Hosts with Critical Vulnerabilities</div>
         </div>
         {% endif %}
 
-        {% if host_vulns_data %}
-        <div class="box">
-            <div class="boxtitle">
-                <p>Hosts with Critical Vulnerabilities</p>
-            </div>
-            <div class="boxcontent">
-                <span>{{host_vulns_data.critical_vuln_count}}</span>
-            </div>
+        {% if container_vulns_data %}
+        <div class="summary-card critical">
+            <div class="number">{{container_vulns_data.critical_vuln_count}}</div>
+            <div class="label">Containers with Critical Vulnerabilities</div>
         </div>
         {% endif %}
 
         {% if aws_compliance_data %}
-        <div class="box">
-            <div class="boxtitle">
-                <p>Total Critical AWS Compliance Findings</p>
-            </div>
-            <div class="boxcontent">
-                <span>{{aws_compliance_data.critical_finding_count}}</span>
-            </div>
+        <div class="summary-card high">
+            <div class="number">{{aws_compliance_data.critical_finding_count}}</div>
+            <div class="label">Critical AWS Compliance Findings</div>
         </div>
-
         {% endif %}
 
         {% if azure_compliance_data %}
-        <div class="box">
-            <div class="boxtitle">
-                <p>Total Critical Azure Compliance Findings</p>
-            </div>
-            <div class="boxcontent">
-                <span>{{azure_compliance_data.critical_finding_count}}</span>
-            </div>
+        <div class="summary-card high">
+            <div class="number">{{azure_compliance_data.critical_finding_count}}</div>
+            <div class="label">Critical Azure Compliance Findings</div>
         </div>
-
         {% endif %}
 
         {% if gcp_compliance_data %}
-        <div class="box">
-            <div class="boxtitle">
-                <p>Total Critical GCP Compliance Findings</p>
-            </div>
-            <div class="boxcontent">
-                <span>{{gcp_compliance_data.critical_finding_count}}</span>
-            </div>
+        <div class="summary-card high">
+            <div class="number">{{gcp_compliance_data.critical_finding_count}}</div>
+            <div class="label">Critical GCP Compliance Findings</div>
         </div>
         {% endif %}
 
         {% if alerts_data %}
-        <div class="box">
-            <div class="boxtitle">
-                <p>Total High / Critical Behaviors Detected</p>
-            </div>
-            <div class="boxcontent">
-                <span>{{ alerts_data.high_critical_finding_count}}</span>
-            </div>
+        <div class="summary-card warning">
+            <div class="number">{{ alerts_data.high_critical_finding_count }}</div>
+            <div class="label">High/Critical Behavioral Alerts</div>
         </div>
         {% endif %}
 
         {% if secrets_data %}
-        <div class="box">
-            <div class="boxtitle">
-                <p>Number of Secrets Detected</p>
-            </div>
-            <div class="boxcontent">
-                <span>{{ secrets_data.secrets_count}}</span>
-            </div>
+        <div class="summary-card {% if secrets_data.secrets_count > 0 %}critical{% else %}info{% endif %}">
+            <div class="number">{{ secrets_data.secrets_count }}</div>
+            <div class="label">Exposed Secrets Detected</div>
         </div>
         {% endif %}
     </div>
-    <br>
+
+    <!-- Promo Graphic -->
+    {% if pdf %}
+    <div class="promo-section">
+        {% if polygraph_graphic_html %}{{ polygraph_graphic_html | safe }}{% endif %}
+    </div>
+    {% else %}
+    <div class="promo-section">
+        {% if polygraph_graphic_html %}{{ polygraph_graphic_html | safe }}{% endif %}
+    </div>
+    {% endif %}
+</section>
+
+<!-- Immediate Actions Section -->
+<section id="immediate-actions">
+    <div class="action-section">
+        <h3>Immediate Actions Required</h3>
+        <p>Based on the assessment findings, the following actions are prioritized by severity and impact:</p>
+
+        <ol class="action-list">
+            {% if secrets_data and secrets_data.secrets_count > 0 %}
+            <li class="priority-critical">
+                <span class="action-number">1</span>
+                <div class="action-content">
+                    <strong>Rotate Exposed Secrets Immediately</strong>
+                    <p>{{secrets_data.secrets_count}} secret(s) have been detected in your workloads. Rotate these credentials and investigate potential unauthorized access.</p>
+                </div>
+            </li>
+            {% endif %}
+
+            {% if host_vulns_data and host_vulns_data.critical_vuln_count > 0 %}
+            <li class="priority-critical">
+                <span class="action-number">{% if secrets_data and secrets_data.secrets_count > 0 %}2{% else %}1{% endif %}</span>
+                <div class="action-content">
+                    <strong>Patch Critical Host Vulnerabilities</strong>
+                    <p>{{host_vulns_data.critical_vuln_count}} host(s) have critical vulnerabilities with available patches. Prioritize patching systems with network exposure.</p>
+                </div>
+            </li>
+            {% endif %}
+
+            {% if container_vulns_data and container_vulns_data.critical_vuln_count > 0 %}
+            <li class="priority-critical">
+                <span class="action-number">{% set n = 1 %}{% if secrets_data and secrets_data.secrets_count > 0 %}{% set n = n + 1 %}{% endif %}{% if host_vulns_data and host_vulns_data.critical_vuln_count > 0 %}{% set n = n + 1 %}{% endif %}{{n}}</span>
+                <div class="action-content">
+                    <strong>Rebuild Vulnerable Container Images</strong>
+                    <p>{{container_vulns_data.critical_vuln_count}} container image(s) contain critical vulnerabilities. Update base images and redeploy affected workloads.</p>
+                </div>
+            </li>
+            {% endif %}
+
+            {% if aws_compliance_data and aws_compliance_data.critical_finding_count > 0 %}
+            <li class="priority-high">
+                <span class="action-number">{% set n = 1 %}{% if secrets_data and secrets_data.secrets_count > 0 %}{% set n = n + 1 %}{% endif %}{% if host_vulns_data and host_vulns_data.critical_vuln_count > 0 %}{% set n = n + 1 %}{% endif %}{% if container_vulns_data and container_vulns_data.critical_vuln_count > 0 %}{% set n = n + 1 %}{% endif %}{{n}}</span>
+                <div class="action-content">
+                    <strong>Address AWS Compliance Gaps</strong>
+                    <p>{{aws_compliance_data.critical_finding_count}} critical compliance finding(s) detected. Review IAM policies, encryption settings, and network configurations.</p>
+                </div>
+            </li>
+            {% endif %}
+
+            {% if azure_compliance_data and azure_compliance_data.critical_finding_count > 0 %}
+            <li class="priority-high">
+                <span class="action-number">{% set n = 1 %}{% if secrets_data and secrets_data.secrets_count > 0 %}{% set n = n + 1 %}{% endif %}{% if host_vulns_data and host_vulns_data.critical_vuln_count > 0 %}{% set n = n + 1 %}{% endif %}{% if container_vulns_data and container_vulns_data.critical_vuln_count > 0 %}{% set n = n + 1 %}{% endif %}{% if aws_compliance_data and aws_compliance_data.critical_finding_count > 0 %}{% set n = n + 1 %}{% endif %}{{n}}</span>
+                <div class="action-content">
+                    <strong>Address Azure Compliance Gaps</strong>
+                    <p>{{azure_compliance_data.critical_finding_count}} critical compliance finding(s) detected. Review Azure AD, storage security, and network security groups.</p>
+                </div>
+            </li>
+            {% endif %}
+
+            {% if alerts_data and alerts_data.high_critical_finding_count > 0 %}
+            <li class="priority-high">
+                <span class="action-number">{% set n = 1 %}{% if secrets_data and secrets_data.secrets_count > 0 %}{% set n = n + 1 %}{% endif %}{% if host_vulns_data and host_vulns_data.critical_vuln_count > 0 %}{% set n = n + 1 %}{% endif %}{% if container_vulns_data and container_vulns_data.critical_vuln_count > 0 %}{% set n = n + 1 %}{% endif %}{% if aws_compliance_data and aws_compliance_data.critical_finding_count > 0 %}{% set n = n + 1 %}{% endif %}{% if azure_compliance_data and azure_compliance_data.critical_finding_count > 0 %}{% set n = n + 1 %}{% endif %}{{n}}</span>
+                <div class="action-content">
+                    <strong>Investigate Behavioral Alerts</strong>
+                    <p>{{alerts_data.high_critical_finding_count}} high/critical behavioral alert(s) require investigation for potential security incidents or policy violations.</p>
+                </div>
+            </li>
+            {% endif %}
+
+            <li class="priority-medium">
+                <span class="action-number">+</span>
+                <div class="action-content">
+                    <strong>Schedule Regular Assessments</strong>
+                    <p>Implement continuous security monitoring and schedule recurring assessments to track remediation progress and detect new risks.</p>
+                </div>
+            </li>
+        </ol>
+    </div>
+</section>
+
+<!-- Value Proposition -->
+<section>
+    <h3>FortiCNAPP Assessment Value</h3>
+    <div class="value-props">
+        <div class="value-prop">
+            <div class="value-prop-icon">100x</div>
+            <div class="value-prop-text">Reduce alerts 100:1 with intelligent correlation</div>
+        </div>
+        <div class="value-prop">
+            <div class="value-prop-icon">80%</div>
+            <div class="value-prop-text">Speed up security investigations by 80%</div>
+        </div>
+        <div class="value-prop">
+            <div class="value-prop-icon">50%</div>
+            <div class="value-prop-text">Decrease SIEM ingestion costs by 50%</div>
+        </div>
+        <div class="value-prop">
+            <div class="value-prop-icon">AI</div>
+            <div class="value-prop-text">Improve anomalous behavior detection</div>
+        </div>
+    </div>
+</section>
+
+<!-- Secrets Section -->
+{% if secrets_data and secrets_data.secrets_count > 0 %}
+<section id="secrets" class="pagebreak">
+    <h2>Exposed Secrets <span class="badge badge-critical">CRITICAL</span></h2>
+
+    <div class="info-box alert">
+        <div class="info-box-icon">!</div>
+        <div class="info-box-content">
+            <strong>Immediate Action Required</strong>
+            The following SSH keys and secrets have been detected in your workloads. These should be rotated immediately and the source of exposure investigated.
+        </div>
+    </div>
+
+    {{ secrets_data.secrets_raw.to_html(index=False) | safe }}
+
+    <div class="action-section">
+        <h3>Remediation Steps</h3>
+        <ol class="action-list">
+            <li class="priority-critical">
+                <span class="action-number">1</span>
+                <div class="action-content">
+                    <strong>Rotate all exposed credentials</strong>
+                    <p>Generate new SSH keys and update all systems using the compromised keys.</p>
+                </div>
+            </li>
+            <li class="priority-high">
+                <span class="action-number">2</span>
+                <div class="action-content">
+                    <strong>Audit access logs</strong>
+                    <p>Review authentication logs for any unauthorized access using the exposed credentials.</p>
+                </div>
+            </li>
+            <li class="priority-medium">
+                <span class="action-number">3</span>
+                <div class="action-content">
+                    <strong>Implement secrets management</strong>
+                    <p>Use a secrets manager (HashiCorp Vault, AWS Secrets Manager) to prevent future exposure.</p>
+                </div>
+            </li>
+        </ol>
+    </div>
+</section>
+{% endif %}
+
+<!-- Compliance Findings Section -->
+{% if aws_compliance_data or azure_compliance_data or gcp_compliance_data %}
+<section id="compliance" class="pagebreak">
+    <h2>Compliance Findings</h2>
+
     <p>
-        <b><u>
-            This assessment offers a glimpse into the value that FortiCNAPP provides customers, including:
-        </u></b>
-    </p>
-    <p>
-    <ul>
-        <li>Reduce alerts 100:1</li>
-        <li>Speed up security investigations by 80%</li>
-        <li>Decrease SIEM ingestion costs by 50%</li>
-        <li>Improve detections of anomalous behaviors in cloud accounts and workloads</li>
-        <li>Accelerate security throughout development with less effort</li>
-    </ul>
+        FortiCNAPP has assessed your cloud security posture against CIS benchmarks and industry best practices. The following findings highlight areas requiring attention to maintain compliance and reduce risk.
     </p>
 
+    {% if aws_compliance_data and aws_compliance_data.summary_count > 0 %}
+    <div class="finding-card">
+        <div class="finding-card-header">
+            <div class="finding-card-title">AWS Compliance Assessment</div>
+            <span class="badge {% if aws_compliance_data.critical_finding_count > 0 %}badge-critical{% else %}badge-medium{% endif %}">
+                {{aws_compliance_data.critical_finding_count}} Critical
+            </span>
+        </div>
+        <div class="finding-card-body">
+            <p><strong>Total AWS Accounts Analyzed:</strong> {{aws_compliance_data.cloud_accounts_count}}</p>
+            {{ aws_compliance_data.compliance_summary.to_html(index=False) | safe }}
+            {{ aws_compliance_data.compliance_findings_by_service_bar_graphic | safe }}
+            {{ aws_compliance_data.compliance_findings_by_account_bar_graphic | safe }}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if azure_compliance_data and azure_compliance_data.summary_count > 0 %}
+    <div class="finding-card pagebreak">
+        <div class="finding-card-header">
+            <div class="finding-card-title">Azure Compliance Assessment</div>
+            <span class="badge {% if azure_compliance_data.critical_finding_count > 0 %}badge-critical{% else %}badge-medium{% endif %}">
+                {{azure_compliance_data.critical_finding_count}} Critical
+            </span>
+        </div>
+        <div class="finding-card-body">
+            <p><strong>Total Azure Subscriptions Analyzed:</strong> {{azure_compliance_data.cloud_accounts_count}}</p>
+            {{ azure_compliance_data.compliance_summary.to_html(index=False) | safe }}
+            {{ azure_compliance_data.compliance_findings_by_service_bar_graphic | safe }}
+            {{ azure_compliance_data.compliance_findings_by_account_bar_graphic | safe }}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if gcp_compliance_data and gcp_compliance_data.summary_count > 0 %}
+    <div class="finding-card pagebreak">
+        <div class="finding-card-header">
+            <div class="finding-card-title">GCP Compliance Assessment</div>
+            <span class="badge {% if gcp_compliance_data.critical_finding_count > 0 %}badge-critical{% else %}badge-medium{% endif %}">
+                {{gcp_compliance_data.critical_finding_count}} Critical
+            </span>
+        </div>
+        <div class="finding-card-body">
+            <p><strong>Total GCP Projects Analyzed:</strong> {{gcp_compliance_data.cloud_accounts_count}}</p>
+            {{ gcp_compliance_data.compliance_summary.to_html(index=False) | safe }}
+            {{ gcp_compliance_data.compliance_findings_by_service_bar_graphic | safe }}
+            {{ gcp_compliance_data.compliance_findings_by_account_bar_graphic | safe }}
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endif %}
+
+<!-- Alerts Section -->
+{% if alerts_data %}
+<section id="alerts" class="pagebreak">
+    <h2>Security Alerts & Anomalies</h2>
+
+    <div class="info-box {% if alerts_data.high_critical_finding_count > 0 %}warning{% else %}tip{% endif %}">
+        <div class="info-box-icon">i</div>
+        <div class="info-box-content">
+            <strong>Behavioral Analysis (Last 7 Days)</strong>
+            FortiCNAPP has identified {{alerts_data.high_critical_finding_count}} high/critical behavioral anomalies that may indicate security incidents, policy violations, or misconfigurations requiring investigation.
+        </div>
+    </div>
+
+    <h4>Top 25 Alerts by Severity</h4>
+    {{ alerts_data.alerts_raw.to_html(index=False) | safe }}
+
+    {% if alerts_data.high_critical_finding_count > 0 %}
+    <div class="action-section">
+        <h3>Investigation Guidance</h3>
+        <ol class="action-list">
+            <li class="priority-high">
+                <span class="action-number">1</span>
+                <div class="action-content">
+                    <strong>Review Critical/High Alerts First</strong>
+                    <p>Focus on alerts indicating potential compromise, data exfiltration, or privilege escalation.</p>
+                </div>
+            </li>
+            <li class="priority-medium">
+                <span class="action-number">2</span>
+                <div class="action-content">
+                    <strong>Correlate with Access Logs</strong>
+                    <p>Cross-reference alert timestamps with CloudTrail, Azure Activity Logs, or GCP Audit Logs.</p>
+                </div>
+            </li>
+            <li class="priority-medium">
+                <span class="action-number">3</span>
+                <div class="action-content">
+                    <strong>Update Detection Rules</strong>
+                    <p>Tune FortiCNAPP policies to reduce false positives and enhance detection accuracy.</p>
+                </div>
+            </li>
+        </ol>
+    </div>
+    {% endif %}
+</section>
+{% endif %}
+
+<!-- Vulnerabilities Section -->
+{% if host_vulns_data or container_vulns_data %}
+<section id="vulnerabilities" class="pagebreak">
+    <h2>Workload Vulnerability Assessment</h2>
+
+    <p>
+        FortiCNAPP has performed agentless vulnerability scanning across your workloads. The following findings identify vulnerable hosts and container images with associated remediation guidance.
+    </p>
+
+    <div class="summary-grid">
+        {% if host_vulns_data %}
+        <div class="summary-card info">
+            <div class="number">{{host_vulns_data.hosts_scanned_count}}</div>
+            <div class="label">Total Hosts Scanned</div>
+        </div>
+        {% endif %}
+        {% if container_vulns_data %}
+        <div class="summary-card info">
+            <div class="number">{{container_vulns_data.containers_scanned_count}}</div>
+            <div class="label">Container Images Scanned</div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if host_vulns_data %}
+    <h3>Host Vulnerability Summary</h3>
+    {{ host_vulns_data.host_vulns_summary.to_html(index=False) | safe }}
+    {{ host_vulns_data.host_vulns_summary_bar_graphic | safe }}
+
+    {% if host_vulns_data.critical_vuln_count > 0 %}
+    <div class="info-box alert">
+        <div class="info-box-icon">!</div>
+        <div class="info-box-content">
+            <strong>Critical Vulnerabilities Detected</strong>
+            {{host_vulns_data.critical_vuln_count}} host(s) have critical vulnerabilities. Prioritize patching based on network exposure and data sensitivity.
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    {% if container_vulns_data %}
+    <h3>Container Vulnerability Summary</h3>
+    {{ container_vulns_data.container_vulns_summary.to_html(index=False) | safe }}
+    {{ container_vulns_data.container_vulns_summary_by_package_bar_graphic | safe }}
+
+    {% if container_vulns_data.critical_vuln_count > 0 %}
+    <div class="info-box alert">
+        <div class="info-box-icon">!</div>
+        <div class="info-box-content">
+            <strong>Vulnerable Container Images</strong>
+            {{container_vulns_data.critical_vuln_count}} container image(s) contain critical vulnerabilities. Update base images and rebuild affected containers.
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+</section>
+{% endif %}
+
+<!-- Detailed Findings Appendix -->
+{% if host_vulns_data or container_vulns_data or aws_compliance_data or azure_compliance_data or gcp_compliance_data %}
+<section id="detailed-findings" class="pagebreak">
+    <h2>Appendix: Detailed Findings</h2>
+    <p>This section contains granular details for remediation teams.</p>
+
+    {% if host_vulns_data or container_vulns_data %}
+    <h3>Detailed CVE Breakdown</h3>
+
+    {% if host_vulns_data and not host_vulns_data.fixable_vulns.empty %}
+    <h4>Hosts with Critical, Fixable Vulnerabilities</h4>
+    <div class="info-box tip">
+        <div class="info-box-icon">i</div>
+        <div class="info-box-content">
+            <strong>Quick Win Opportunity</strong>
+            These vulnerabilities have fixes available. Patching these systems will significantly reduce your attack surface.
+        </div>
+    </div>
+    {{ host_vulns_data.fixable_vulns.to_html() | safe }}
+    {% endif %}
+
+    {% if container_vulns_data and not container_vulns_data.fixable_vulns.empty %}
+    <h4>Containers with Critical, Fixable Vulnerabilities</h4>
+    <div class="info-box tip">
+        <div class="info-box-icon">i</div>
+        <div class="info-box-content">
+            <strong>Image Update Required</strong>
+            Update the base images for these containers and rebuild to remediate the vulnerabilities.
+        </div>
+    </div>
+    {{ container_vulns_data.fixable_vulns.to_html() | safe }}
+    {% endif %}
+    {% endif %}
+
+    {% if aws_compliance_data or azure_compliance_data or gcp_compliance_data %}
+    <h3>Detailed Cloud Compliance Findings</h3>
+
+    {% if aws_compliance_data %}
+    <h4>AWS - High/Critical Compliance Findings</h4>
+    {{ aws_compliance_data.compliance_detail.to_html() | safe }}
+
+    {% if aws_compliance_data.critical_finding_count > 0 %}
+    <h4>AWS - Critical Findings with Remediation Details</h4>
+    {{ aws_compliance_data.critical_details.to_html().replace("\\n","<br>") | safe }}
+    {% endif %}
+    {% endif %}
+
+    {% if azure_compliance_data %}
+    <h4>Azure - High/Critical Compliance Findings</h4>
+    {{ azure_compliance_data.compliance_detail.to_html(index=False) | safe }}
+
+    {% if azure_compliance_data.critical_finding_count > 0 %}
+    <h4>Azure - Critical Findings with Remediation Details</h4>
+    {{ azure_compliance_data.critical_details.to_html().replace("\\n","<br>") | safe }}
+    {% endif %}
+    {% endif %}
+
+    {% if gcp_compliance_data %}
+    <h4>GCP - High/Critical Compliance Findings</h4>
+    {{ gcp_compliance_data.compliance_detail.to_html(index=False) | safe }}
+
+    {% if gcp_compliance_data.critical_finding_count > 0 %}
+    <h4>GCP - Critical Findings with Remediation Details</h4>
+    {{ gcp_compliance_data.critical_details.to_html().replace("\\n","<br>") | safe }}
+    {% endif %}
+    {% endif %}
+    {% endif %}
+</section>
+{% endif %}
+
+<!-- Recommendations Section -->
+<section id="recommendations">
     {% if recommendations %}
     <div class="recommendations">
         {{ recommendations | safe }}
     </div>
-    {% endif %}
-
-
-</div>
-<div class="section-three">
-    {% if secrets_data.secrets_count > 0 %}
-    <div class="secrets">
-
-        <h4>Exposed SSH Keys</h4>
-        <p>
-            Using FortiCNAPP agentless workload scanning the following SSH Keys have been found on your workloads:
-        </p>
-
-        {{ secrets_data.secrets_raw.to_html(index=False) | safe }}
-
+    {% else %}
+    <div class="recommendations">
+        <h2>Recommendations & Next Steps</h2>
+        <p>Based on the findings of this assessment, we recommend the following action plan:</p>
+        <ol>
+            <li><strong>Immediate (0-7 days):</strong> Address all critical vulnerabilities and rotate any exposed secrets identified in this report.</li>
+            <li><strong>Short-term (1-4 weeks):</strong> Remediate high-severity compliance findings and investigate behavioral alerts.</li>
+            <li><strong>Medium-term (1-3 months):</strong> Implement continuous monitoring with FortiCNAPP and establish remediation workflows.</li>
+            <li><strong>Ongoing:</strong> Schedule recurring Cloud Security Assessments to track improvement and detect new risks.</li>
+        </ol>
+        <p>Engage with your Fortinet account team and partner to review service offerings and prioritize remediation efforts.</p>
     </div>
     {% endif %}
-    <div class="compliance_findings">
-        {% if aws_compliance_data or azure_compliance_data or gcp_compliance_data %}
-        <h4> Compliance Findings </h4>
-        <p>Using FortiCNAPP agentless compliance functionality, we’ve assessed the current security posture against best
-            practices, policies, and compliance frameworks. FortiCNAPP identified the following:</p>
-        {% endif %}
+</section>
 
-        {% if aws_compliance_data and aws_compliance_data.summary_count > 0 %}
-        <div class="pagebreak">
-            <h4>AWS Compliance Findings</h4>
-            <p><b>
-                Total AWS Accounts Analyzed: {{aws_compliance_data.cloud_accounts_count}}
-            </b>
-
-                {{ aws_compliance_data.compliance_summary.to_html(index=False) | safe }}
-                {{ aws_compliance_data.compliance_findings_by_service_bar_graphic | safe }}
-                {{ aws_compliance_data.compliance_findings_by_account_bar_graphic | safe }}
-            </p>
-        </div>
-        {% endif %}
-
-        {% if azure_compliance_data and azure_compliance_data.summary_count > 0 %}
-        <div class="pagebreak">
-
-            <p>
-            <h4>Azure Compliance Findings</h4>
-            <b>
-                Total Azure Subscriptions Analyzed: {{azure_compliance_data.cloud_accounts_count}}
-            </b>
-            {{ azure_compliance_data.compliance_summary.to_html(index=False) | safe }}
-            {{ azure_compliance_data.compliance_findings_by_service_bar_graphic | safe }}
-            {{ azure_compliance_data.compliance_findings_by_account_bar_graphic | safe }}
-            </p>
-
-        </div>
-        {% endif %}
-
-        {% if gcp_compliance_data and gcp_compliance_data.summary_count > 0 %}
-        <div class="pagebreak">
-            <p>
-            <h4>GCP Compliance Findings</h4>
-            <b>
-                Total GCP Subscriptions Analyzed: {{gcp_compliance_data.cloud_accounts_count}}
-            </b>
-            {{ gcp_compliance_data.compliance_summary.to_html(index=False) | safe }}
-            {{ gcp_compliance_data.compliance_findings_by_service_bar_graphic | safe }}
-            {{ gcp_compliance_data.compliance_findings_by_account_bar_graphic | safe }}
-            </p>
-        </div>
-        {% endif %}
-    </div>
-    {% if alerts_data %}
-    <div class="alerts">
-
-        <h2>Behavioral & Known-Bad Alerts - Polygraph Anomalies (last 7 days / top 25)</h2>
-        <p>
-            Using the FortiCNAPP agentless Cloud Log behavioral assessment & any behavioral data from any agents you may
-            have deployed, we’ve identified the following anomalous or policy-based activity for further investigation.
-        </p>
-
-        {{ alerts_data.alerts_raw.to_html(index=False) | safe }}
-    </div>
-    {% endif %}
-    <div class="vulnerabilities">
-        {% if host_vulns_data or container_vulns_data %}
-
-        <h2>Workload Vulnerability Assessment</h2>
-        <p>
-            FortiCNAPP has scanned and identified vulnerable container images and/or hosts and associated risk of the
-            vulnerabilities present. If the FortiCNAPP agent was not installed as part of this assessment it may be
-            installed later to highlight observed behavior, communication paths, and context.
-        </p>
-
-        {% if host_vulns_data %}
-        <p><b>
-            Total Hosts Scanned: {{host_vulns_data.hosts_scanned_count}}
-        </b></p>
-
-        {% endif %}
-
-        {% if container_vulns_data %}
-
-        <p><b>
-            Total Container Images Scanned: {{container_vulns_data.containers_scanned_count}}
-        </b></p>
-        <br/>
-
-        {% endif %}
-
-        {% endif %}
-
-
-        {% if host_vulns_data %}
-
-        <h3>Host Vulnerability Summary</h3>
-        {{ host_vulns_data.host_vulns_summary.to_html(index=False) | safe }}
-        {{ host_vulns_data.host_vulns_summary_bar_graphic | safe }}
-
-        {% endif %}
-        <br/>
-        {% if container_vulns_data %}
-
-        <h3>Container Vulnerability Summary</h3>
-        {{ container_vulns_data.container_vulns_summary.to_html(index=False) | safe }}
-        {{ container_vulns_data.container_vulns_summary_by_package_bar_graphic | safe }}
-
-        {% endif %}
-    </div>
-    {% if host_vulns_data or container_vulns_data or aws_compliance_data or azure_compliance_data or
-    gcp_compliance_data%}
-    <div class="detailed_findings">
-        <h2>Appendix of Detailed Findings</h2>
-        <p>This section contains additional details on the findings that were summarized above:</p>
-        {% if host_vulns_data or container_vulns_data %}
-        <h3>Detailed CVE Breakdown</h3>
-        {% endif %}
-        {% if host_vulns_data and not host_vulns_data.fixable_vulns.empty %}
-        <h4>Hosts With Critical, Fixable Vulnerabilities</h4>
-        <p> This table lists all hosts with "critical" vulnerabilities that have fixes available. Additional
-            vulnerability information for other severity levels
-            can be found in the FortiCNAPP UI. </p>
-        {{ host_vulns_data.fixable_vulns.to_html() | safe }}
-
-        {% endif %}
-
-        {% if container_vulns_data and not container_vulns_data.fixable_vulns.empty %}
-
-        <h4>Containers With Critical, Fixable Vulnerabilities</h4>
-        <p> This table lists all containers with "critical" vulnerabilities that have fixes available. Additional
-            vulnerability information can be found in the FortiCNAPP UI. </p>
-        {{ container_vulns_data.fixable_vulns.to_html() | safe }}
-
-        {% endif %}
-
-        <br/>
-        {% if aws_compliance_data or azure_compliance_data or gcp_compliance_data %}
-
-        <h3>Detailed Cloud Compliance Findings</h3>
-        <p></p>
-        {% if aws_compliance_data %}
-        <h4>AWS - Top High/Critical Compliance Findings</h4>
-        <p></p>
-        {{ aws_compliance_data.compliance_detail.to_html() | safe }}
-
-        {% if aws_compliance_data.critical_finding_count > 0 %}
-        <h4>AWS - Critical Findings with Details</h4>
-        <p> This table contains CIS compliance findings with a severity of "Critical". Other severity levels can be
-            reviewed in the FortiCNAPP UI. </p>
-        {{ aws_compliance_data.critical_details.to_html().replace("\\n","<br>") | safe }}
-        {% endif %}
-        {% endif %}
-
-        {% if azure_compliance_data %}
-        <h4>Azure - Top High/Critical Compliance Findings</h4>
-        <p></p>
-        {{ azure_compliance_data.compliance_detail.to_html(index=False) | safe }}
-
-        {% if azure_compliance_data.critical_finding_count > 0 %}
-        <h4>Azure - Critical Findings with Details</h4>
-        <p> This table contains CIS compliance findings with a severity of "Critical". Other severity levels can be
-            reviewed in the FortiCNAPP UI. </p>
-        {{ azure_compliance_data.critical_details.to_html().replace("\\n","<br>") | safe }}
-        {% endif %}
-        {% endif %}
-
-        {% if gcp_compliance_data %}
-        <h4>GCP - Top High/Critical Compliance Findings</h4>
-        <p></p>
-        {{ gcp_compliance_data.compliance_detail.to_html(index=False) | safe }}
-
-        {% if gcp_compliance_data.critical_finding_count > 0 %}
-        <h4>GCP - Critical Findings with Details</h4>
-        <p> This table contains CIS compliance findings with a severity of "Critical". Other severity levels can be
-            reviewed in the FortiCNAPP UI. </p>
-        {{ gcp_compliance_data.critical_details.to_html().replace("\\n","<br>") | safe }}
-        {% endif %}
-        {% endif %}
-
-        {% endif %}
-    </div>
-    {% endif %}
-</div>
+<footer>
+    <p>Generated by FortiCNAPP Cloud Security Assessment Tool</p>
+    <p>Report Date: {{date}} | Prepared for: {{customer}} | Author: {{author}}</p>
+</footer>
 
 </body>
 </html>
