@@ -68,8 +68,7 @@ class HostVulnerabilities:
             # df = df.groupby(['evalCtx.hostname', 'featureKey.name', 'featureKey.version_installed', 'severity', 'vulnId'],
             #                 as_index=False).agg({'fixInfo.fixed_version': ', '.join})
             df = df.groupby(['evalCtx.hostname', 'severity', 'vulnId', 'featureKey.name', 'featureKey.version_installed'],
-                            as_index=False).agg(pd.unique).applymap(lambda x: x[0] if len(x) == 1 else x)
-            print(df)
+                            as_index=False).agg(lambda x: ', '.join(x.unique()) if x.dtype == 'object' else x.iloc[0])
             df = df.groupby(['evalCtx.hostname', 'severity', 'featureKey.name', 'fixInfo.fixed_version','featureKey.version_installed' ], as_index=False).agg({'vulnId': ', '.join})
             # rename columns
             df.rename(columns={'evalCtx.hostname': 'Hostname',

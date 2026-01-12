@@ -165,13 +165,15 @@ class LaceworkInterface:
 
             i = 1
             for page in host_vulns:
-                logger.info('Saving page ' + str(i))
+                logger.info('Saving page ' + str(i) + f' with {len(page.get("data", []))} records')
                 i = i + 1
                 results.extend(page['data'])
+            logger.info(f'Total records for severity {severity}: {i-1} pages')
             if i > 100:
                 logger.warning(
                     "Lacework API returned maximum pages of host vuln results (100 pages). Processed dataset is likely incomplete.")
 
+        logger.info(f'Total host vulnerability records retrieved: {len(results)}')
         host_vulns = HostVulnerabilities(results)
         return host_vulns
 
