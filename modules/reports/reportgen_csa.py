@@ -59,7 +59,7 @@ class ReportGenCSA(ReportGen):
     def generate(self,
                  customer: str,
                  author: str,
-                 vulns_start_time: LaceworkTime = LaceworkTime('0:25'),
+                 vulns_start_time: LaceworkTime = LaceworkTime('7:0'),
                  vulns_end_time: LaceworkTime = LaceworkTime('0:0'),
                  alerts_start_time: LaceworkTime = LaceworkTime('7:0'),
                  alerts_end_time: LaceworkTime = LaceworkTime('0:0'),

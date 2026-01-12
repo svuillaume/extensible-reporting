@@ -57,7 +57,7 @@ def get_arguments():
     parser.add_argument("--cache-data", help="Create/use locally cached copies of Lacework data. This is mainly used for dev testing.", action='store_true')
     parser.add_argument("--vulns-start-time", type=str,
                         help="The number of days and hours in the past relative to NOW to start the vulnerability report. In the format <D:H>",
-                        default="0:25")
+                        default="7:0")
     parser.add_argument("--vulns-end-time", type=str,
                         help="The number of days and hours in the past relative to NOW to end the vulnerability report. In the format <D:H> (use 0:0 for now)",
                         default="0:0")
