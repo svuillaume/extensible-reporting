@@ -5,9 +5,9 @@
 set -e  # Exit on any error
 
 # Configuration
-API_KEY="_5cd40cd6de5c6985acc7e9becdad2069"
-KEY_ID="22181775_F83E8DB411871C17666943C410F2732F5DF43AE0F6696BF"
-BASE_URL="https://2218177.lacework.net//api/v2"
+API_KEY=""
+KEY_ID=""
+BASE_URL=""
 ID_HIGH_PRIV="Identities_with_excessive_privileges.json"
 ID_ROOT="Root_Identities.json"
 ID_ROOTandHIGH="Root_Identities_with_excessive_privileges.json"
