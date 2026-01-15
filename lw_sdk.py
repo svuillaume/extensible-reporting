@@ -21,9 +21,9 @@ def load_environment_variables():
 def initialize_lacework_client():
     """Initialize and return the Lacework client."""
     return LaceworkClient(
-        account="2218177.lacework.net",
-        api_key="22181775_F83E8DB411871C17666943C410F2732F5DF43AE0F6696BF",
-        api_secret="_5cd40cd6de5c6985acc7e9becdad2069"
+        account="",
+        api_key="",
+        api_secret=""
     )
 
 
