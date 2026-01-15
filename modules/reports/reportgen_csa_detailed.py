@@ -22,6 +22,11 @@ class ReportGenCSADetailed(ReportGen):
         self.template = self.get_jinja2_template('csa_detailed_report.jinja2')
         self.company_logo_html = self.file_to_image_tag('assets/Fortinet_logo.png', 'png')
         self.polygraph_graphic_html = self.file_to_image_tag('assets/FortiCNAPP-Unified-Approach.png', 'png')
+        self.sec_outcomes_html = self.file_to_image_tag('assets/sec_outcomes.png', 'png')
+        self.cloud_status_quo_html = self.file_to_image_tag('assets/CloudStatusQuo.png', 'png')
+        self.fortinet_sec_fabric_html = self.file_to_image_tag('assets/FortinetSecFabric.png', 'png')
+        self.forticnapp_platform_html = self.file_to_image_tag('assets/FortiCNAPP.png', 'png')
+        self.state_of_cloud_html = self.file_to_image_tag('assets/StateofCloud_SecReport.png', 'png')
 
     def gather_data(self,
                     vulns_start_time: LaceworkTime,
@@ -52,6 +57,11 @@ class ReportGenCSADetailed(ReportGen):
             company_logo_html=self.company_logo_html,
             custom_logo_html=self.custom_logo_html,
             polygraph_graphic_html=self.polygraph_graphic_html,
+            sec_outcomes_html=self.sec_outcomes_html,
+            cloud_status_quo_html=self.cloud_status_quo_html,
+            fortinet_sec_fabric_html=self.fortinet_sec_fabric_html,
+            forticnapp_platform_html=self.forticnapp_platform_html,
+            state_of_cloud_html=self.state_of_cloud_html,
             aws_compliance_data=self.aws_compliance_data,
             azure_compliance_data=self.azure_compliance_data,
             gcp_compliance_data=self.gcp_compliance_data,

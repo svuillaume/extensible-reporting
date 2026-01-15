@@ -7,7 +7,57 @@ from logzero import logger
 class ContainerVulnerabilities:
 
     def __init__(self, raw_data):
-        self.data = raw_data
+        # Filter for CVSS score 10.0 only
+        self.data = self._filter_by_cvss_score(raw_data, target_score=10.0)
+
+    def _filter_by_cvss_score(self, raw_data, target_score=10.0):
+        """Filter vulnerabilities by CVSS score.
+
+        Args:
+            raw_data: List of vulnerability records
+            target_score: Target CVSS score (default 10.0)
+
+        Returns:
+            Filtered list of vulnerabilities with CVSS score >= target_score
+        """
+        filtered_data = []
+        for vuln in raw_data:
+            # Try to extract CVSS score from various possible locations
+            cvss_score = None
+
+            # Check cveProps.metadata.NVD.CVSSv3.Score
+            if 'cveProps' in vuln and vuln['cveProps']:
+                cve_props = vuln['cveProps']
+                if 'metadata' in cve_props and cve_props['metadata']:
+                    metadata = cve_props['metadata']
+                    if 'NVD' in metadata and metadata['NVD']:
+                        nvd = metadata['NVD']
+                        if 'CVSSv3' in nvd and nvd['CVSSv3']:
+                            cvss_v3 = nvd['CVSSv3']
+                            if 'Score' in cvss_v3:
+                                cvss_score = float(cvss_v3['Score'])
+
+                # Also check for cvssV3Score directly in cveProps
+                if cvss_score is None and 'cvssV3Score' in cve_props:
+                    cvss_score = float(cve_props['cvssV3Score'])
+
+                # Check for cvss_v3_score
+                if cvss_score is None and 'cvss_v3_score' in cve_props:
+                    cvss_score = float(cve_props['cvss_v3_score'])
+
+            # Check top-level fields
+            if cvss_score is None and 'cvssScore' in vuln:
+                cvss_score = float(vuln['cvssScore'])
+
+            if cvss_score is None and 'cvss_score' in vuln:
+                cvss_score = float(vuln['cvss_score'])
+
+            # If we found a CVSS score and it matches our target, include it
+            if cvss_score is not None and cvss_score >= target_score:
+                filtered_data.append(vuln)
+
+        logger.info(f'Filtered container vulnerabilities: {len(raw_data)} -> {len(filtered_data)} (CVSS >= {target_score})')
+        return filtered_data
 
     def total_evaluated(self):
         df = pd.DataFrame(self.data)
@@ -167,14 +217,58 @@ class ContainerVulnerabilities:
         df = self.summary_by_package().head(limit)
         import plotly.graph_objects as go
 
-        # Use textposition='auto' for direct text
-        fig = go.Figure(data=[go.Bar(x=df['Package Info'], y=df['Count'])])
-        fig.update_layout(
-            title='High Priority Packages to Patch (by CVE Count)',
-            yaxis=dict(
-                title='Number of Affected Images'
+        # Modern gradient color scheme
+        gradient_colors = ['#6366F1', '#8B5CF6', '#A855F7', '#C026D3', '#D946EF',
+                          '#E879F9', '#F0ABFC', '#F5D0FE', '#FAE8FF', '#FDF4FF'][:len(df)]
+
+        # Create modern bar chart
+        fig = go.Figure(data=[go.Bar(
+            x=df['Package Info'],
+            y=df['Count'],
+            marker=dict(
+                color=gradient_colors,
+                line=dict(color='rgba(255, 255, 255, 0.8)', width=1.5),
+                opacity=0.9
             ),
-            xaxis_tickangle=45
+            text=df['Count'],
+            textposition='outside',
+            textfont=dict(size=11, color='#1F2937', family='Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
+            hovertemplate='<b>%{x}</b><br>Affected Images: %{y}<extra></extra>'
+        )])
+
+        fig.update_layout(
+            title=dict(
+                text='High Priority Packages to Patch',
+                font=dict(size=18, color='#111827', family='Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', weight=600),
+                x=0.5,
+                xanchor='center'
+            ),
+            yaxis=dict(
+                title='Number of Affected Images',
+                titlefont=dict(size=14, color='#4B5563', family='Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
+                tickfont=dict(size=12, color='#6B7280'),
+                gridcolor='#E5E7EB',
+                gridwidth=1,
+                showgrid=True,
+                zeroline=False
+            ),
+            xaxis=dict(
+                tickangle=-45,
+                tickfont=dict(size=11, color='#6B7280', family='Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
+                showgrid=False
+            ),
+            plot_bgcolor='rgba(249, 250, 251, 0.5)',
+            paper_bgcolor='white',
+            margin=dict(l=60, r=40, t=100, b=120),
+            font=dict(family='Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
+            hoverlabel=dict(
+                bgcolor='white',
+                font_size=13,
+                font_family='Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                bordercolor='#E5E7EB'
+            ),
+            uniformtext=dict(mode='hide', minsize=8)
         )
+
         img_bytes = fig.to_image(format=format, width=width, height=height)
         return img_bytes

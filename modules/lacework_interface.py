@@ -201,7 +201,7 @@ class LaceworkInterface:
         return IdentityEntitlements(identity_data)
 
     @cache_results
-    def get_host_vulns(self, start_time, end_time, severities=("Critical", "High", "Medium")):
+    def get_host_vulns(self, start_time, end_time, severities=("Critical", "High", "Medium", "Low")):
         results = []
         for severity in severities:
             filters = {
@@ -241,7 +241,7 @@ class LaceworkInterface:
         return host_vulns
 
     @cache_results
-    def get_container_vulns(self, start_time, end_time, severities=("Critical", "High", "Medium")):
+    def get_container_vulns(self, start_time, end_time, severities=("Critical",)):
         results = []
         for severity in severities:
             filters = {

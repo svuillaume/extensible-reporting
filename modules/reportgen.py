@@ -86,6 +86,7 @@ class ReportGen:
         summary_bar_graphic = host_vulnerabilities.host_vulns_by_severity_bar(width=1200 * self.graph_scale, height=350 * self.graph_scale)
         summary_bar_graphic_encoded = self.bytes_to_image_tag(summary_bar_graphic, "svg+xml", align='middle')
         fixable_vulns = host_vulnerabilities.fixable_vulns(severities=["Critical"])
+        all_cves_detail = host_vulnerabilities.all_cves_detail(severities=("High", "Medium", "Low"), limit=100)
         return {
             'hosts_scanned_count': total_evaluated,
             'host_vulns_summary': summary,
@@ -93,7 +94,8 @@ class ReportGen:
             'host_vulns_summary_by_host': summary_by_host,
             'critical_vuln_count': critical_vulnerability_count,
             'host_vulns_summary_by_host_limit': host_limit,
-            'fixable_vulns': fixable_vulns
+            'fixable_vulns': fixable_vulns,
+            'all_cves_detail': all_cves_detail
         }
 
     def gather_container_vulnerability_data(self, begin_time: str, end_time: str, container_limit: int = 25):
@@ -224,7 +226,7 @@ class ReportGen:
         Args:
             begin_time: ISO timestamp
             end_time: ISO timestamp
-            threshold: Unused entitlement threshold (default 70)
+            threshold: Unused entitlement threshold (default 70, Azure uses 20)
 
         Returns:
             Dictionary with CIEM data for all providers or False on error
@@ -254,6 +256,13 @@ class ReportGen:
         ciem_data = {}
         from modules.identity_entitlements import IdentityEntitlements
 
+        # Define per-provider thresholds
+        provider_thresholds = {
+            'AWS': threshold,
+            'AZURE': 20,  # Azure uses lower threshold of 20
+            'GCP': threshold
+        }
+
         for provider in ['AWS', 'AZURE', 'GCP']:
             # Filter identities by provider type
             provider_identities = [identity for identity in all_identity_entitlements.data
@@ -267,18 +276,28 @@ class ReportGen:
             # Create a new IdentityEntitlements object for this provider
             identity_entitlements = IdentityEntitlements({'data': provider_identities})
 
+            # Use provider-specific threshold
+            provider_threshold = provider_thresholds[provider]
+
             # Get critical identities (root + high privileges)
-            critical_identities = identity_entitlements.get_critical_identities(threshold)
-            high_privilege_identities = identity_entitlements.get_high_privilege_identities(threshold)
+            critical_identities = identity_entitlements.get_critical_identities(provider_threshold)
+            high_privilege_identities = identity_entitlements.get_high_privilege_identities(provider_threshold)
             root_identities = identity_entitlements.get_root_identities()
 
             print(f'{provider}: Total identities analyzed: {identity_entitlements.count_identities()}')
-            print(f'{provider}: High privilege identities (≥{threshold} unused entitlements): {len(high_privilege_identities)}')
+            print(f'{provider}: High privilege identities (≥{provider_threshold} unused entitlements): {len(high_privilege_identities)}')
             print(f'{provider}: Root/admin identities: {len(root_identities)}')
-            print(f'{provider}: Critical (root + ≥{threshold} unused): {len(critical_identities)}')
+            print(f'{provider}: Critical (root + ≥{provider_threshold} unused): {len(critical_identities)}')
 
             # Get all identities for display (top 25)
             all_identities = identity_entitlements.get_all_identities(limit=25)
+
+            # For Azure, also get count of identities with ≥80 for executive summary
+            high_risk_count_80 = 0
+            if provider == 'AZURE':
+                high_risk_80 = identity_entitlements.get_high_privilege_identities(80)
+                high_risk_count_80 = len(high_risk_80)
+                print(f'{provider}: High risk identities (≥80 unused entitlements): {high_risk_count_80}')
 
             # Process data for this provider
             ciem_data[provider] = {
@@ -289,9 +308,13 @@ class ReportGen:
                 'high_privilege_identities': high_privilege_identities,
                 'root_identities': root_identities,
                 'all_identities': all_identities,
-                'threshold': threshold,
+                'threshold': provider_threshold,
                 'total_identities': identity_entitlements.count_identities()
             }
+
+            # Add Azure-specific high risk count for executive summary
+            if provider == 'AZURE':
+                ciem_data[provider]['high_risk_count_80'] = high_risk_count_80
 
         # Check if we got any data from at least one provider
         providers_with_data = [k for k, v in ciem_data.items() if v is not None]

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FortiCNAPP Cloud Rapid Assessmemt Report - {{customer}}</title>
+    <title>FortiCNAPP Rapid Cloud Assessment - {{customer}}</title>
     <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">
     <style type="text/css">
         :root {
@@ -29,20 +29,36 @@
             {% if pagesize %}
             @page {
                 size: {{pagesize}} landscape;
-                margin: 1cm;
+                margin: 1cm 1.5cm;
             }
             {% endif %}
-            img {visibility: visible !important;}
-            table {transform: scale(1);}
-            td, th {
-                max-width: 150px;
-                word-wrap: break-word;
+
+            /* Minimal print rules - keep exact HTML layout */
+            .pagebreak {
+                page-break-after: always;
+                clear: both;
             }
-            p {break-inside: avoid;}
-            div {break-inside: avoid;}
-            .pagebreak { page-break-after: always; clear: both;}
-            .no-print { display: none !important; }
-            .action-card { break-inside: avoid; }
+
+            .no-print {
+                display: none !important;
+            }
+
+            /* Remove hover effects for print */
+            tbody tr:hover {
+                background: transparent !important;
+            }
+
+            /* Prevent awkward page breaks */
+            .action-card,
+            .finding-card,
+            .info-box,
+            .summary-card,
+            header,
+            .report-title,
+            table {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
         }
 
         * {
@@ -53,9 +69,10 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            width: 95%;
-            max-width: 1400px;
+            width: 100%;
+            max-width: 100%;
             margin: 0 auto;
+            padding: 0 1.5rem;
             color: var(--color-text);
             background: #FFFFFF;
             line-height: 1.6;
@@ -81,9 +98,9 @@
         .report-title {
             background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
             color: white;
-            padding: 3rem;
+            padding: 2rem;
             border-radius: 12px;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .report-title h1 {
@@ -144,13 +161,21 @@
 
         /* Executive Summary Cards */
         .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            width: 100%;
             margin: 2rem 0;
+            overflow: hidden;
+        }
+
+        .summary-grid::after {
+            content: "";
+            display: table;
+            clear: both;
         }
 
         .summary-card {
+            float: left;
+            width: 23%;
+            margin-right: 2.666%;
             background: white;
             border-radius: 12px;
             padding: 1.5rem;
@@ -158,6 +183,11 @@
             border: 1px solid var(--color-border);
             text-align: center;
             transition: transform 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+
+        .summary-card:nth-child(4n) {
+            margin-right: 0;
         }
 
         .summary-card:hover {
@@ -323,6 +353,48 @@
             color: var(--color-low);
         }
 
+        /* NIST CSF Function Badges */
+        .nist-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            margin-left: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nist-identify {
+            background: #E0E7FF;
+            color: #3730A3;
+            border: 1px solid #A5B4FC;
+        }
+
+        .nist-protect {
+            background: #DBEAFE;
+            color: #1E40AF;
+            border: 1px solid #93C5FD;
+        }
+
+        .nist-detect {
+            background: #FEF3C7;
+            color: #92400E;
+            border: 1px solid #FCD34D;
+        }
+
+        .nist-respond {
+            background: #FED7AA;
+            color: #9A3412;
+            border: 1px solid #FDBA74;
+        }
+
+        .nist-recover {
+            background: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #6EE7B7;
+        }
+
         /* Risk Score Meter */
         .risk-meter {
             margin: 1.5rem 0;
@@ -470,12 +542,14 @@
             background: var(--color-bg-light);
             border-radius: 12px;
             padding: 1.5rem 2rem;
-            margin: 2rem 0;
+            margin: 2rem auto;
+            max-width: 900px;
         }
 
         .toc h3 {
             margin-top: 0;
             font-size: 1.1rem;
+            text-align: center;
         }
 
         .toc-list {
@@ -505,11 +579,22 @@
             display: flex;
             justify-content: center;
             margin: 2rem 0;
+            width: 100%;
+            max-width: 100%;
         }
 
         .promo-section img {
-            max-width: 90%;
+            max-width: 85%;
+            width: 85%;
             height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Cover page image - smaller to fit on first page */
+        .cover-image img {
+            max-width: 70%;
+            width: 70%;
         }
 
         /* Value Props */
@@ -614,20 +699,20 @@
 
 <!-- Title Section -->
 <div class="report-title">
-    <h1>Cloud Security Assessment Report</h1>
+    <h1>FortiCNAPP Rapid Cloud Assessment</h1>
     <div class="subtitle">Comprehensive Security Posture Analysis for {{customer}}</div>
     <div class="meta">
         <span>Report Date: {{date}}</span>
         <span>Prepared by: {{author}}</span>
-        {% set scope_items = [] %}
-        {% if aws_compliance_data %}{% set _ = scope_items.append(aws_compliance_data.cloud_accounts_count ~ ' AWS Accounts') %}{% endif %}
-        {% if azure_compliance_data %}{% set _ = scope_items.append(azure_compliance_data.cloud_accounts_count ~ ' Azure Subscriptions') %}{% endif %}
-        {% if gcp_compliance_data %}{% set _ = scope_items.append(gcp_compliance_data.cloud_accounts_count ~ ' GCP Projects') %}{% endif %}
-        {% if host_vulns_data %}{% set _ = scope_items.append(host_vulns_data.hosts_scanned_count ~ ' Hosts') %}{% endif %}
-        {% if container_vulns_data %}{% set _ = scope_items.append(container_vulns_data.containers_scanned_count ~ ' Containers') %}{% endif %}
-        {% if scope_items %}<span>Scope: {{ scope_items | join(' | ') }}</span>{% endif %}
     </div>
 </div>
+
+<!-- Cloud Status Quo -->
+<section class="pagebreak">
+    <div class="promo-section cover-image">
+        {% if cloud_status_quo_html %}{{ cloud_status_quo_html | safe }}{% endif %}
+    </div>
+</section>
 
 <!-- Table of Contents -->
 <div class="toc">
@@ -701,6 +786,13 @@
         <div class="summary-card {% if secrets_data.secrets_count > 0 %}critical{% else %}info{% endif %}">
             <div class="number">{{ secrets_data.secrets_count }}</div>
             <div class="label">Exposed Secrets Detected</div>
+        </div>
+        {% endif %}
+
+        {% if ciem_data and ciem_data.AZURE and ciem_data.AZURE.high_risk_count_80 is defined and ciem_data.AZURE.high_risk_count_80 > 0 %}
+        <div class="summary-card high">
+            <div class="number">{{ ciem_data.AZURE.high_risk_count_80 }}</div>
+            <div class="label">Azure High Privilege Identities<br><span style="font-size: 0.85em;">(≥80 unused entitlements)</span></div>
         </div>
         {% endif %}
     </div>
@@ -792,29 +884,6 @@
                 </div>
             </li>
         </ol>
-    </div>
-</section>
-
-<!-- Value Proposition -->
-<section>
-    <h3>FortiCNAPP Assessment Outcomes</h3>
-    <div class="value-props">
-        <div class="value-prop">
-            <div class="value-prop-icon">100x</div>
-            <div class="value-prop-text">Reduce alerts 100:1 with intelligent correlation</div>
-        </div>
-        <div class="value-prop">
-            <div class="value-prop-icon">80%</div>
-            <div class="value-prop-text">Speed up security investigations by 80%</div>
-        </div>
-        <div class="value-prop">
-            <div class="value-prop-icon">50%</div>
-            <div class="value-prop-text">Decrease SIEM ingestion costs by 50%</div>
-        </div>
-        <div class="value-prop">
-            <div class="value-prop-icon">AI</div>
-            <div class="value-prop-text">Improve anomalous behavior detection</div>
-        </div>
     </div>
 </section>
 
@@ -1249,6 +1318,18 @@
         </div>
     </div>
     {% endif %}
+
+    {% if host_vulns_data.all_cves_detail is defined and not host_vulns_data.all_cves_detail.empty %}
+    <h4>Detailed CVE List (High, Medium, Low Severity)</h4>
+    <div class="info-box tip">
+        <div class="info-box-icon">i</div>
+        <div class="info-box-content">
+            <strong>Additional Vulnerabilities</strong>
+            The table below shows all High, Medium, and Low severity CVEs found across your hosts. Review and prioritize based on your environment and risk tolerance.
+        </div>
+    </div>
+    {{ host_vulns_data.all_cves_detail.to_html(index=False) | safe }}
+    {% endif %}
     {% endif %}
 
     {% if container_vulns_data %}
@@ -1279,7 +1360,7 @@
     <h3>Detailed CVE Breakdown</h3>
 
     {% if host_vulns_data and not host_vulns_data.fixable_vulns.empty %}
-    <h4>Hosts with Critical, Fixable Vulnerabilities</h4>
+    <h4>Hosts with Critical, Fixable Vulnerabilities (CVE Risk Score = 10)</h4>
     <div class="info-box tip">
         <div class="info-box-icon">i</div>
         <div class="info-box-content">
@@ -1287,16 +1368,105 @@
             These vulnerabilities have fixes available. Patching these systems will significantly reduce your attack surface.
         </div>
     </div>
+    <div class="info-box warning">
+        <div class="info-box-icon">📊</div>
+        <div class="info-box-content">
+            <strong>Understanding Risk Score</strong>
+            <p style="margin: 0.5rem 0 0 0;">
+                This report displays <strong>Critical vulnerabilities with CVSS score 10.0</strong> (the highest severity).
+                The <strong>Risk Score</strong> shown represents the vulnerability impact, which is calculated based on:
+            </p>
+            <ul style="margin: 0.5rem 0 0 1.5rem; line-height: 1.6;">
+                <li><strong>Number of hosts or container images affected</strong> - More affected systems = higher risk</li>
+                <li><strong>Number of packages affected</strong> - Widespread package vulnerabilities = higher risk</li>
+            </ul>
+            <p style="margin: 0.5rem 0 0 0; font-size: 0.9em; color: var(--color-text-light);">
+                <em>Note: Risk Score differs from CVSS score. CVSS measures vulnerability severity, while Risk Score measures blast radius and organizational impact.</em>
+            </p>
+        </div>
+    </div>
     {{ host_vulns_data.fixable_vulns.to_html() | safe }}
+
+    <div class="action-section" style="margin-top: 2rem;">
+        <h3>Host Vulnerability Recommendations</h3>
+        <ol class="action-list">
+            <li class="priority-critical">
+                <span class="action-number">1</span>
+                <div class="action-content">
+                    <strong>Prioritize <span class="nist-badge nist-identify">IDENTIFY</span><span class="nist-badge nist-respond">RESPOND</span></strong>
+                    <p>High CVSS, public exploits, Internet-exposed, and critical hosts first.</p>
+                </div>
+            </li>
+            <li class="priority-high">
+                <span class="action-number">2</span>
+                <div class="action-content">
+                    <strong>Patch quickly <span class="nist-badge nist-protect">PROTECT</span></strong>
+                    <p>OS & software updates; automate where possible; test critical patches.</p>
+                </div>
+            </li>
+            <li class="priority-high">
+                <span class="action-number">3</span>
+                <div class="action-content">
+                    <strong>Reduce attack surface <span class="nist-badge nist-protect">PROTECT</span></strong>
+                    <p>Remove unused software/services, close unnecessary ports, harden configs.</p>
+                </div>
+            </li>
+            <li class="priority-high">
+                <span class="action-number">4</span>
+                <div class="action-content">
+                    <strong>Secure network & access <span class="nist-badge nist-protect">PROTECT</span></strong>
+                    <p>Firewalls, restricted SSH/VPN, segmentation; monitor exposed ports.</p>
+                </div>
+            </li>
+            <li class="priority-medium">
+                <span class="action-number">5</span>
+                <div class="action-content">
+                    <strong>Continuous vulnerability scanning <span class="nist-badge nist-detect">DETECT</span></strong>
+                    <p>Regularly scan hosts, confirm remediation, focus on exploitable + Internet-exposed hosts.</p>
+                </div>
+            </li>
+            <li class="priority-medium">
+                <span class="action-number">6</span>
+                <div class="action-content">
+                    <strong>Monitor & detect <span class="nist-badge nist-detect">DETECT</span></strong>
+                    <p>Use IDS/EDR; watch logs for suspicious activity.</p>
+                </div>
+            </li>
+            <li class="priority-medium">
+                <span class="action-number">7</span>
+                <div class="action-content">
+                    <strong>Backup & document <span class="nist-badge nist-recover">RECOVER</span></strong>
+                    <p>Backup before patching; track remediation; include exposure in reports.</p>
+                </div>
+            </li>
+        </ol>
+    </div>
     {% endif %}
 
     {% if container_vulns_data and not container_vulns_data.fixable_vulns.empty %}
-    <h4>Containers with Critical, Fixable Vulnerabilities</h4>
+    <h4>Containers with Critical, Fixable Vulnerabilities (CVE Risk Score = 10)</h4>
     <div class="info-box tip">
         <div class="info-box-icon">i</div>
         <div class="info-box-content">
             <strong>Image Update Required</strong>
             Update the base images for these containers and rebuild to remediate the vulnerabilities.
+        </div>
+    </div>
+    <div class="info-box warning">
+        <div class="info-box-icon">📊</div>
+        <div class="info-box-content">
+            <strong>Understanding Risk Score</strong>
+            <p style="margin: 0.5rem 0 0 0;">
+                This report displays <strong>Critical vulnerabilities with CVSS score 10.0</strong> (the highest severity).
+                The <strong>Risk Score</strong> shown represents the vulnerability impact, which is calculated based on:
+            </p>
+            <ul style="margin: 0.5rem 0 0 1.5rem; line-height: 1.6;">
+                <li><strong>Number of container images affected</strong> - More affected images = higher risk</li>
+                <li><strong>Number of packages affected</strong> - Widespread package vulnerabilities = higher risk</li>
+            </ul>
+            <p style="margin: 0.5rem 0 0 0; font-size: 0.9em; color: var(--color-text-light);">
+                <em>Note: Risk Score differs from CVSS score. CVSS measures vulnerability severity, while Risk Score measures blast radius and organizational impact.</em>
+            </p>
         </div>
     </div>
     {{ container_vulns_data.fixable_vulns.to_html() | safe }}
@@ -1324,6 +1494,84 @@
     <h4>Azure - Critical Findings with Remediation Details</h4>
     {{ azure_compliance_data.critical_details.to_html().replace("\\n","<br>") | safe }}
     {% endif %}
+
+    <div class="action-section" style="margin-top: 2rem;">
+        <h3>Cloud Compliance Recommendations</h3>
+        <p style="margin-bottom: 1.5rem; color: var(--color-text);">
+            Achieving and maintaining cloud compliance requires a systematic approach combining automation, continuous monitoring, and proactive remediation. Follow these best practices to strengthen your compliance posture:
+        </p>
+        <ol class="action-list">
+            <li class="priority-critical">
+                <span class="action-number">1</span>
+                <div class="action-content">
+                    <strong>Implement Continuous Compliance Monitoring <span class="nist-badge nist-detect">DETECT</span></strong>
+                    <p>Deploy automated tools like FortiCNAPP to continuously scan cloud environments for configuration drift, policy violations, and compliance gaps. Real-time monitoring enables immediate detection and faster remediation of non-compliant resources before they become security risks.</p>
+                </div>
+            </li>
+            <li class="priority-high">
+                <span class="action-number">2</span>
+                <div class="action-content">
+                    <strong>Automate Remediation Workflows <span class="nist-badge nist-respond">RESPOND</span></strong>
+                    <p>Configure automated responses for common compliance violations such as open security groups, unencrypted storage, or missing tags. Use Infrastructure-as-Code (IaC) to enforce compliant configurations and prevent manual misconfigurations.</p>
+                </div>
+            </li>
+            <li class="priority-high">
+                <span class="action-number">3</span>
+                <div class="action-content">
+                    <strong>Prioritize Critical & High Severity Findings <span class="nist-badge nist-identify">IDENTIFY</span><span class="nist-badge nist-respond">RESPOND</span></strong>
+                    <p>Address critical findings first, focusing on publicly exposed resources, data encryption gaps, IAM misconfigurations, and logging deficiencies. These pose the highest risk to your security posture and regulatory standing.</p>
+                </div>
+            </li>
+            <li class="priority-high">
+                <span class="action-number">4</span>
+                <div class="action-content">
+                    <strong>Establish Policy-as-Code <span class="nist-badge nist-protect">PROTECT</span></strong>
+                    <p>Define compliance policies as code to enforce security standards across all cloud accounts and environments. Use tools like Terraform, CloudFormation, or Azure Policy to codify CIS benchmarks, NIST frameworks, and regulatory requirements.</p>
+                </div>
+            </li>
+            <li class="priority-medium">
+                <span class="action-number">5</span>
+                <div class="action-content">
+                    <strong>Enable Comprehensive Audit Logging <span class="nist-badge nist-detect">DETECT</span></strong>
+                    <p>Ensure CloudTrail (AWS), Activity Logs (Azure), and Cloud Audit Logs (GCP) are enabled across all regions and accounts. Centralize logs in a SIEM or log analytics platform for compliance reporting and forensic analysis.</p>
+                </div>
+            </li>
+            <li class="priority-medium">
+                <span class="action-number">6</span>
+                <div class="action-content">
+                    <strong>Conduct Regular Compliance Assessments <span class="nist-badge nist-identify">IDENTIFY</span></strong>
+                    <p>Schedule recurring compliance scans (weekly or monthly) to track remediation progress and identify new violations. Compare results over time to measure improvement and demonstrate compliance to auditors.</p>
+                </div>
+            </li>
+            <li class="priority-medium">
+                <span class="action-number">7</span>
+                <div class="action-content">
+                    <strong>Implement Least Privilege Access <span class="nist-badge nist-protect">PROTECT</span></strong>
+                    <p>Review and restrict IAM permissions to the minimum required for each role. Remove unused accounts, enforce MFA, rotate credentials regularly, and monitor privileged access with session recording and just-in-time access.</p>
+                </div>
+            </li>
+            <li class="priority-medium">
+                <span class="action-number">8</span>
+                <div class="action-content">
+                    <strong>Document & Report Compliance Status <span class="nist-badge nist-identify">IDENTIFY</span></strong>
+                    <p>Maintain compliance documentation including policies, procedures, remediation tracking, and audit reports. Generate executive dashboards showing compliance scores, trend analysis, and remediation velocity for stakeholders and auditors.</p>
+                </div>
+            </li>
+        </ol>
+        <div class="info-box tip" style="margin-top: 1.5rem;">
+            <div class="info-box-icon">💡</div>
+            <div class="info-box-content">
+                <strong>Continuous Compliance is Key</strong>
+                <p style="margin: 0.5rem 0 0 0;">
+                    Cloud environments are dynamic—resources are created, modified, and deleted constantly. Point-in-time compliance scans provide only a snapshot.
+                    <strong>Continuous compliance monitoring</strong> ensures your security posture remains strong 24/7 by detecting drift immediately and enabling rapid response to new violations.
+                </p>
+                <p style="margin: 0.5rem 0 0 0;">
+                    FortiCNAPP provides real-time compliance monitoring across AWS, Azure, and GCP with automated detection, prioritized remediation guidance, and executive reporting to maintain continuous compliance.
+                </p>
+            </div>
+        </div>
+    </div>
     {% endif %}
 
     {% if gcp_compliance_data %}
@@ -1358,6 +1606,38 @@
         <p>Engage with your Fortinet account team and partner to review service offerings and prioritize remediation efforts.</p>
     </div>
     {% endif %}
+</section>
+
+<!-- FortiCNAPP - One Platform Section -->
+<section id="forticnapp-platform" class="pagebreak">
+    <h2>Fortinet FortiCNAPP - One Platform</h2>
+    <div class="promo-section">
+        {% if forticnapp_platform_html %}{{ forticnapp_platform_html | safe }}{% endif %}
+    </div>
+</section>
+
+<!-- Fortinet Security Fabric Section -->
+<section id="fortinet-security-fabric" class="pagebreak">
+    <h2>Fortinet Security Fabric</h2>
+    <div class="promo-section">
+        {% if fortinet_sec_fabric_html %}{{ fortinet_sec_fabric_html | safe }}{% endif %}
+    </div>
+</section>
+
+<!-- Security Outcomes Section -->
+<section id="security-outcomes" class="pagebreak">
+    <h2>FortiCNAPP Security Outcomes</h2>
+    <div class="promo-section">
+        {% if sec_outcomes_html %}{{ sec_outcomes_html | safe }}{% endif %}
+    </div>
+</section>
+
+<!-- State of Cloud Security Report Section -->
+<section id="state-of-cloud" class="pagebreak">
+    <h2>State of Cloud Security Report</h2>
+    <div class="promo-section">
+        {% if state_of_cloud_html %}{{ state_of_cloud_html | safe }}{% endif %}
+    </div>
 </section>
 
 <footer>
