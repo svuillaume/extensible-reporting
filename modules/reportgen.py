@@ -161,11 +161,11 @@ class ReportGen:
         findings_summary_by_service_bar_graph_encoded = self.bytes_to_image_tag(findings_summary_by_service_bar_graph, 'svg+xml', align='middle')
         critical_details = compliance_reports.critical_compliance_details()
         summary_by_account = compliance_reports.get_summary_by_account()
-        summary_count = summary_by_account.shape[0]
-        if 'Critical' in summary_by_account.columns:
-            critical_finding_count = summary_by_account['Critical'].sum()
-        else:
-            critical_finding_count = 0
+
+        # Count unique compliance findings (not resources) across all accounts
+        # If the same control fails in multiple accounts, it's only counted once
+        summary_count = compliance_reports.get_unique_finding_count(severities=["Critical", "High"])
+        critical_finding_count = compliance_reports.get_unique_critical_finding_count()
 
         return {
             'cloud_accounts_count': compliance_reports.get_total_accounts_evaluated(),

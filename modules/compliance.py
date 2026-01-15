@@ -21,8 +21,8 @@ class Compliance:
             self.account_id_string = 'ACCOUNT_ID'
             self.account_id_rename_string = 'Account ID'
         if self.cloud_provider == 'AZURE':
-            self.account_id_string = 'TENANT_ID'
-            self.account_id_rename_string = 'Tenant ID'
+            self.account_id_string = 'SUBSCRIPTION_ID'
+            self.account_id_rename_string = 'Subscription ID'
         if self.cloud_provider == 'GCP':
             self.account_id_string = 'PROJECT_ID'
             self.account_id_rename_string = 'Project ID'
@@ -39,6 +39,42 @@ class Compliance:
         df = pd.DataFrame(self.all_recommendations)
         unique_accounts = df[self.account_id_string].nunique()
         return unique_accounts
+
+    def get_unique_critical_finding_count(self):
+        """
+        Count unique critical compliance findings across all accounts.
+        If the same control fails in multiple accounts, it's only counted once.
+
+        Returns:
+            Integer count of unique critical findings
+        """
+        df = pd.DataFrame(self.all_recommendations)
+        df = df[df['STATUS'].isin(["NonCompliant"])]
+        df = df[df['SEVERITY'] == 1]  # Critical severity
+
+        # Count unique TITLE values (unique compliance controls)
+        unique_critical_count = df['TITLE'].nunique()
+        return unique_critical_count
+
+    def get_unique_finding_count(self, severities=["Critical", "High"]):
+        """
+        Count unique compliance findings across all accounts for specified severities.
+        If the same control fails in multiple accounts, it's only counted once.
+
+        Args:
+            severities: List of severity strings to include
+
+        Returns:
+            Integer count of unique findings
+        """
+        df = pd.DataFrame(self.all_recommendations)
+        df = df[df['STATUS'].isin(["NonCompliant"])]
+        df = df.replace({'SEVERITY': {1: "Critical", 2: "High", 3: "Medium", 4: "Low", 5: "Info"}})
+        df = df[df['SEVERITY'].isin(severities)]
+
+        # Count unique TITLE values (unique compliance controls)
+        unique_finding_count = df['TITLE'].nunique()
+        return unique_finding_count
 
     def get_compliance_details(self, severities=["Critical", "High"]):
         df = pd.DataFrame(self.all_recommendations)

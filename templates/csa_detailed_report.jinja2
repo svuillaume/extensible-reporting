@@ -951,9 +951,6 @@
     <div class="finding-card">
         <div class="finding-card-header">
             <div class="finding-card-title">AWS Compliance Assessment</div>
-            <span class="badge {% if aws_compliance_data.critical_finding_count > 0 %}badge-critical{% else %}badge-medium{% endif %}">
-                {{aws_compliance_data.critical_finding_count}} Critical
-            </span>
         </div>
         <div class="finding-card-body">
             <p><strong>Total AWS Accounts Analyzed:</strong> {{aws_compliance_data.cloud_accounts_count}}</p>
@@ -968,9 +965,6 @@
     <div class="finding-card pagebreak">
         <div class="finding-card-header">
             <div class="finding-card-title">Azure Compliance Assessment</div>
-            <span class="badge {% if azure_compliance_data.critical_finding_count > 0 %}badge-critical{% else %}badge-medium{% endif %}">
-                {{azure_compliance_data.critical_finding_count}} Critical
-            </span>
         </div>
         <div class="finding-card-body">
             <p><strong>Total Azure Subscriptions Analyzed:</strong> {{azure_compliance_data.cloud_accounts_count}}</p>
@@ -985,9 +979,6 @@
     <div class="finding-card pagebreak">
         <div class="finding-card-header">
             <div class="finding-card-title">GCP Compliance Assessment</div>
-            <span class="badge {% if gcp_compliance_data.critical_finding_count > 0 %}badge-critical{% else %}badge-medium{% endif %}">
-                {{gcp_compliance_data.critical_finding_count}} Critical
-            </span>
         </div>
         <div class="finding-card-body">
             <p><strong>Total GCP Projects Analyzed:</strong> {{gcp_compliance_data.cloud_accounts_count}}</p>
