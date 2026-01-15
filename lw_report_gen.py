@@ -58,6 +58,7 @@ def main():
                                                 vulns_end_time=pre_processed_args['vulns_end_time'],
                                                 alerts_start_time=pre_processed_args['alerts_start_time'],
                                                 alerts_end_time=pre_processed_args['alerts_end_time'],
+                                                ciem_threshold=args.ciem_threshold,
                                                 custom_logo=custom_logo
                                                 )
             elif args.report_format == "PDF":
@@ -68,6 +69,7 @@ def main():
                                                 vulns_end_time=pre_processed_args['vulns_end_time'],
                                                 alerts_start_time=pre_processed_args['alerts_start_time'],
                                                 alerts_end_time=pre_processed_args['alerts_end_time'],
+                                                ciem_threshold=args.ciem_threshold,
                                                 custom_logo=custom_logo,
                                                 pagesize='a2',
                                                 pdf=True,

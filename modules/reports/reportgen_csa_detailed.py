@@ -27,7 +27,8 @@ class ReportGenCSADetailed(ReportGen):
                     vulns_start_time: LaceworkTime,
                     vulns_end_time: LaceworkTime,
                     alerts_start_time: LaceworkTime,
-                    alerts_end_time: LaceworkTime):
+                    alerts_end_time: LaceworkTime,
+                    ciem_threshold: int = 70):
 
         self.aws_compliance_data=self.gather_compliance_data(cloud_provider='AWS')
         self.azure_compliance_data=self.gather_compliance_data(cloud_provider='AZURE')
@@ -36,6 +37,7 @@ class ReportGenCSADetailed(ReportGen):
         self.container_vulns_data=self.gather_container_vulnerability_data(vulns_start_time.generate_time_string(), vulns_end_time.generate_time_string())
         self.alerts_data=self.gather_alert_data(alerts_start_time.generate_time_string(), alerts_end_time.generate_time_string())
         self.secrets_data=self.gather_secrets(alerts_start_time.generate_time_string(), alerts_end_time.generate_time_string())
+        self.ciem_data=self.gather_identity_entitlement_data(alerts_start_time.generate_time_string(), alerts_end_time.generate_time_string(), threshold=ciem_threshold)
 
     def render(self, customer, author, pagesize="a3", custom_logo=None, pdf=False):
         if custom_logo and os.path.isfile(custom_logo):
@@ -57,6 +59,7 @@ class ReportGenCSADetailed(ReportGen):
             container_vulns_data=self.container_vulns_data,
             alerts_data=self.alerts_data,
             secrets_data=self.secrets_data,
+            ciem_data=self.ciem_data,
             recommendations=self.recommendations,
             pagesize=pagesize,
             pdf=pdf
@@ -69,13 +72,15 @@ class ReportGenCSADetailed(ReportGen):
                  vulns_end_time: LaceworkTime = LaceworkTime('0:0'),
                  alerts_start_time: LaceworkTime = LaceworkTime('7:0'),
                  alerts_end_time: LaceworkTime = LaceworkTime('0:0'),
+                 ciem_threshold: int = 70,
                  custom_logo=None,
                  pagesize="a3",
                  pdf=False):
         self.gather_data(vulns_start_time,
                          vulns_end_time,
                          alerts_start_time,
-                         alerts_end_time)
+                         alerts_end_time,
+                         ciem_threshold=ciem_threshold)
         return self.render(customer, author, custom_logo=custom_logo, pagesize=pagesize, pdf=pdf)
 
 

@@ -8,6 +8,7 @@ from modules.container_vulnerabilities import ContainerVulnerabilities
 from modules.alerts import Alerts
 from modules.compliance import Compliance
 from modules.secrets import Secrets
+from modules.identity_entitlements import IdentityEntitlements
 from modules.utils import cache_results
 
 
@@ -136,6 +137,68 @@ class LaceworkInterface:
             logger.error(f"Failed to retrieve list of secrets from Lacework API:{str(e)}")
             raise e
         return Secrets(secrets)
+
+    @cache_results
+    def get_identity_entitlements(self, start_time, end_time):
+        """
+        Query LW_CE_IDENTITIES datasource for identity and entitlement data
+        Returns ALL identities from all cloud providers in one query
+
+        Args:
+            start_time: ISO format timestamp
+            end_time: ISO format timestamp
+
+        Returns:
+            IdentityEntitlements object
+        """
+        logger.debug(f'Getting identity entitlements from {start_time} to {end_time}:')
+
+        lql_query = """
+        {
+          source {
+            LW_CE_IDENTITIES
+          }
+          return distinct {
+            RECORD_CREATED_TIME,
+            PRINCIPAL_ID,
+            PROVIDER_TYPE,
+            DOMAIN_ID,
+            NAME,
+            LAST_USED_TIME,
+            CREATED_TIME,
+            METRICS,
+            TAGS,
+            ACCESS_KEYS,
+            ACCESS_KEYS_LIST,
+            ENTITLEMENT_COUNTS
+          }
+        }
+        """
+
+        lql_query_args = {
+            "StartTimeRange": start_time,
+            "EndTimeRange": end_time
+        }
+
+        try:
+            logger.debug(f"Executing LQL query for all identities...")
+            identity_data = self.lacework.queries.execute(
+                query_text=lql_query,
+                arguments=lql_query_args
+            )
+        except Exception as e:
+            logger.error(f"Failed to retrieve identity entitlements: {str(e)}")
+            logger.debug(f"Query was: {lql_query}")
+            logger.debug(f"Arguments were: {lql_query_args}")
+            raise e
+
+        identity_count = len(identity_data.get("data", []))
+        logger.info(f'{identity_count} total identities returned.')
+
+        if identity_count == 0:
+            logger.warning(f"No identity data found. CIEM may not be enabled for this account.")
+
+        return IdentityEntitlements(identity_data)
 
     @cache_results
     def get_host_vulns(self, start_time, end_time, severities=("Critical", "High", "Medium")):

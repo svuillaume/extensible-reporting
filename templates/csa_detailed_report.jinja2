@@ -638,6 +638,7 @@
         {% if secrets_data and secrets_data.secrets_count > 0 %}<li><a href="#secrets">Exposed Secrets</a></li>{% endif %}
         {% if aws_compliance_data or azure_compliance_data or gcp_compliance_data %}<li><a href="#compliance">Compliance Findings</a></li>{% endif %}
         {% if alerts_data %}<li><a href="#alerts">Security Alerts</a></li>{% endif %}
+        {% if ciem_data %}<li><a href="#ciem">Identity & Entitlement Management (CIEM)</a></li>{% endif %}
         {% if host_vulns_data or container_vulns_data %}<li><a href="#vulnerabilities">Vulnerability Assessment</a></li>{% endif %}
         <li><a href="#detailed-findings">Detailed Findings</a></li>
         <li><a href="#recommendations">Recommendations</a></li>
@@ -962,6 +963,246 @@
                 <div class="action-content">
                     <strong>Update Detection Rules</strong>
                     <p>Tune FortiCNAPP policies to reduce false positives and enhance detection accuracy.</p>
+                </div>
+            </li>
+        </ol>
+    </div>
+    {% endif %}
+</section>
+{% endif %}
+
+<!-- CIEM Section -->
+{% if ciem_data %}
+<section id="ciem" class="pagebreak">
+    <h2>Cloud Identity & Entitlement Management (CIEM)</h2>
+
+    <p>
+        Analysis of cloud identities with excessive privileges and unused entitlements across AWS, Azure, and GCP environments. Identities with high unused permissions represent a significant security risk and should be reviewed for least privilege adherence.
+    </p>
+
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+        {% if ciem_data.AWS and ciem_data.AWS.high_privilege_count is defined %}
+        <div class="summary-card {% if ciem_data.AWS.high_privilege_count > 0 %}critical{% else %}success{% endif %}">
+            <div class="number">{{ ciem_data.AWS.high_privilege_count }}</div>
+            <div class="label">AWS High Privilege Identities</div>
+            <div class="sublabel">≥{{ ciem_data.AWS.threshold }} unused entitlements</div>
+        </div>
+        <div class="summary-card info">
+            <div class="number">{{ ciem_data.AWS.total_identities }}</div>
+            <div class="label">Total AWS Identities Analyzed</div>
+            <div class="sublabel">{{ ciem_data.AWS.root_count }} with root access</div>
+        </div>
+        {% endif %}
+
+        {% if ciem_data.AZURE and ciem_data.AZURE.high_privilege_count is defined %}
+        <div class="summary-card {% if ciem_data.AZURE.high_privilege_count > 0 %}critical{% else %}success{% endif %}">
+            <div class="number">{{ ciem_data.AZURE.high_privilege_count }}</div>
+            <div class="label">Azure High Privilege Identities</div>
+            <div class="sublabel">≥{{ ciem_data.AZURE.threshold }} unused entitlements</div>
+        </div>
+        <div class="summary-card info">
+            <div class="number">{{ ciem_data.AZURE.total_identities }}</div>
+            <div class="label">Total Azure Identities Analyzed</div>
+            <div class="sublabel">{{ ciem_data.AZURE.root_count }} with root access</div>
+        </div>
+        {% endif %}
+
+        {% if ciem_data.GCP and ciem_data.GCP.high_privilege_count is defined %}
+        <div class="summary-card {% if ciem_data.GCP.high_privilege_count > 0 %}critical{% else %}success{% endif %}">
+            <div class="number">{{ ciem_data.GCP.high_privilege_count }}</div>
+            <div class="label">GCP High Privilege Identities</div>
+            <div class="sublabel">≥{{ ciem_data.GCP.threshold }} unused entitlements</div>
+        </div>
+        <div class="summary-card info">
+            <div class="number">{{ ciem_data.GCP.total_identities }}</div>
+            <div class="label">Total GCP Identities Analyzed</div>
+            <div class="sublabel">{{ ciem_data.GCP.root_count }} with root access</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- High Privilege Identities Tables by Provider -->
+    {% for provider in ['AWS', 'AZURE', 'GCP'] %}
+        {% if ciem_data[provider] and ciem_data[provider].high_privilege_count is defined %}
+
+        {% if ciem_data[provider].high_privilege_count > 0 %}
+        <h3>{{ provider }} High Privilege Identities (≥{{ ciem_data[provider].threshold }} Unused Entitlements)</h3>
+
+        <div class="info-box alert">
+            <div class="info-box-icon">!</div>
+            <div class="info-box-content">
+                <strong>High Privilege Identities Detected</strong>
+                {{ ciem_data[provider].high_privilege_count }} {{ provider }} identities have ≥{{ ciem_data[provider].threshold }} unused entitlements. These over-provisioned identities should be reviewed for least privilege compliance.
+            </div>
+        </div>
+
+        <table class="ciem-high-privilege-identities" style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+            <thead>
+                <tr style="background-color: #f5f5f5;">
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: left;">Principal ID</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: left;">Name</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">Admin</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">MFA</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">Unused Entitlements</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">Risk</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in ciem_data[provider].high_privilege_identities.itertuples() %}
+                <tr style="{% if row.has_full_admin %}background-color: #ffebee;{% endif %}">
+                    <td style="padding: 0.4rem; border: 1px solid #ddd;"><code style="background: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-size: 0.85em;">{{ row.PRINCIPAL_ID[:40] }}...</code></td>
+                    <td style="padding: 0.4rem; border: 1px solid #ddd;">{{ row.NAME }}</td>
+                    <td style="padding: 0.4rem; border: 1px solid #ddd; text-align: center;">
+                        {% if row.has_full_admin %}
+                        <span style="color: #d32f2f; font-weight: bold;">✓</span>
+                        {% else %}
+                        <span style="color: #999;">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 0.4rem; border: 1px solid #ddd; text-align: center;">
+                        <span class="badge {% if row.mfa_status == 'Enabled' %}success{% elif row.mfa_status == 'Disabled' %}critical{% else %}medium{% endif %}" style="padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.8em;">
+                            {{ row.mfa_status }}
+                        </span>
+                    </td>
+                    <td style="padding: 0.4rem; border: 1px solid #ddd; text-align: center;">
+                        <strong style="color: #d32f2f;">{{ row.unused_count }}</strong> / {{ row.total_count }}
+                        <br><span style="color: #666; font-size: 0.85em;">({{ row.unused_percentage }}%)</span>
+                    </td>
+                    <td style="padding: 0.4rem; border: 1px solid #ddd; text-align: center;">
+                        <span class="badge {% if row.risk_severity == 'CRITICAL' %}critical{% elif row.risk_severity == 'HIGH' %}high{% else %}medium{% endif %}" style="padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.8em;">
+                            {{ row.risk_severity }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p style="font-size: 0.85em; color: #666; margin-top: 0.5rem;">
+            <strong style="background: #ffebee; padding: 2px 4px;">Highlighted rows</strong> indicate identities with full administrative access.
+            MFA status: <span class="badge success" style="padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.8em;">Enabled</span> = MFA configured,
+            <span class="badge critical" style="padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.8em;">Disabled</span> = No MFA,
+            <span class="badge medium" style="padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.8em;">Unknown</span> = Status not determined.
+        </p>
+        {% endif %}
+
+        <!-- Show Root Identities (even if not critical) -->
+        {% if ciem_data[provider].root_count > 0 and ciem_data[provider].root_count > ciem_data[provider].critical_count %}
+        <h3>{{ provider }} Identities with Root/Admin Access</h3>
+        <p style="margin: 0.5rem 0;">
+            Found {{ ciem_data[provider].root_count }} identities with full administrative privileges.
+            {% if ciem_data[provider].critical_count == 0 %}
+            None have ≥{{ ciem_data[provider].threshold }} unused entitlements.
+            {% endif %}
+        </p>
+        {% endif %}
+
+        <!-- Show High Privilege Identities (even if not root) -->
+        {% if ciem_data[provider].high_privilege_count > 0 and ciem_data[provider].high_privilege_count > ciem_data[provider].critical_count %}
+        <h3>{{ provider }} Identities with Excessive Unused Entitlements</h3>
+        <p style="margin: 0.5rem 0;">
+            Found {{ ciem_data[provider].high_privilege_count }} identities with ≥{{ ciem_data[provider].threshold }} unused entitlements.
+            {% if ciem_data[provider].critical_count == 0 %}
+            None have full administrative access.
+            {% endif %}
+        </p>
+        {% endif %}
+
+        <!-- Show Top Identities Table (ALL identities, sorted by risk) -->
+        {% if ciem_data[provider].all_identities is defined and not ciem_data[provider].all_identities.empty %}
+        <h3>{{ provider }} Top Identity Risks (by Unused Entitlements)</h3>
+
+        <table class="ciem-all-identities" style="width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9em;">
+            <thead>
+                <tr style="background-color: #f5f5f5;">
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: left;">Principal ID</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: left;">Name</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">Admin</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">MFA</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">Unused %</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">Unused/Total</th>
+                    <th style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">Risk</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in ciem_data[provider].all_identities.itertuples() %}
+                <tr style="{% if row.has_full_admin and row.unused_count >= ciem_data[provider].threshold %}background-color: #ffebee;{% endif %}">
+                    <td style="padding: 0.4rem; border: 1px solid #ddd;"><code style="background: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-size: 0.85em;">{{ row.PRINCIPAL_ID[:30] }}...</code></td>
+                    <td style="padding: 0.4rem; border: 1px solid #ddd;">{{ row.NAME }}</td>
+                    <td style="padding: 0.4rem; border: 1px solid #ddd; text-align: center;">
+                        {% if row.has_full_admin %}
+                        <span style="color: #d32f2f; font-weight: bold;">✓</span>
+                        {% else %}
+                        <span style="color: #999;">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 0.4rem; border: 1px solid #ddd; text-align: center;">
+                        <span class="badge {% if row.mfa_status == 'Enabled' %}success{% elif row.mfa_status == 'Disabled' %}critical{% else %}medium{% endif %}" style="padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.75em;">
+                            {{ row.mfa_status }}
+                        </span>
+                    </td>
+                    <td style="padding: 0.4rem; border: 1px solid #ddd; text-align: center;">
+                        <strong style="{% if row.unused_count >= ciem_data[provider].threshold %}color: #d32f2f;{% endif %}">{{ row.unused_percentage }}%</strong>
+                    </td>
+                    <td style="padding: 0.4rem; border: 1px solid #ddd; text-align: center;">
+                        <strong style="{% if row.unused_count >= ciem_data[provider].threshold %}color: #d32f2f;{% endif %}">{{ row.unused_count }}</strong> / {{ row.total_count }}
+                    </td>
+                    <td style="padding: 0.4rem; border: 1px solid #ddd; text-align: center;">
+                        <span class="badge {% if row.risk_severity == 'CRITICAL' %}critical{% elif row.risk_severity == 'HIGH' %}high{% elif row.risk_severity == 'MEDIUM' %}medium{% else %}low{% endif %}" style="padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.8em;">
+                            {{ row.risk_severity }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p style="font-size: 0.85em; color: #666; margin-top: 0.5rem;">
+            Showing top 25 identities sorted by risk. Identities with <strong style="background: #ffebee; padding: 2px 4px;">highlighted rows</strong> have both admin access and ≥{{ ciem_data[provider].threshold }} unused entitlements.
+        </p>
+        {% endif %}
+
+        {% endif %}
+    {% endfor %}
+
+    <!-- Recommendations -->
+    {% set total_high_privilege = (ciem_data.AWS.high_privilege_count if ciem_data.AWS and ciem_data.AWS.high_privilege_count is defined else 0) + (ciem_data.AZURE.high_privilege_count if ciem_data.AZURE and ciem_data.AZURE.high_privilege_count is defined else 0) + (ciem_data.GCP.high_privilege_count if ciem_data.GCP and ciem_data.GCP.high_privilege_count is defined else 0) %}
+    {% if total_high_privilege > 0 %}
+    <div class="action-section">
+        <h3>Recommended Actions</h3>
+        <ol class="action-list">
+            <li class="priority-high">
+                <span class="action-number">1</span>
+                <div class="action-content">
+                    <strong>Enable MFA on All Identities</strong>
+                    <p>Immediately enable Multi-Factor Authentication (MFA) for all identities, especially those with administrative access or high unused entitlements. MFA significantly reduces the risk of credential compromise.</p>
+                </div>
+            </li>
+            <li class="priority-high">
+                <span class="action-number">2</span>
+                <div class="action-content">
+                    <strong>Reduce Unused Entitlements (≥70)</strong>
+                    <p>Review and remove unused permissions from identities with ≥70 unused entitlements. These over-provisioned identities violate least privilege principles and increase attack surface.</p>
+                </div>
+            </li>
+            <li class="priority-high">
+                <span class="action-number">3</span>
+                <div class="action-content">
+                    <strong>Review Administrative Access</strong>
+                    <p>Audit all identities with full administrative access. Remove admin privileges where not absolutely necessary and implement role-based access control (RBAC).</p>
+                </div>
+            </li>
+            <li class="priority-medium">
+                <span class="action-number">4</span>
+                <div class="action-content">
+                    <strong>Implement Least Privilege Policies</strong>
+                    <p>Apply the principle of least privilege across all identities. Grant only the minimum permissions required for each role and regularly review access rights.</p>
+                </div>
+            </li>
+            <li class="priority-medium">
+                <span class="action-number">5</span>
+                <div class="action-content">
+                    <strong>Enable Just-In-Time (JIT) Access</strong>
+                    <p>Implement temporary privilege escalation for administrative tasks instead of permanent admin access. Use JIT access mechanisms to reduce standing privileges.</p>
                 </div>
             </li>
         </ol>

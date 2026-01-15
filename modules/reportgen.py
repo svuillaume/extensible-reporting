@@ -217,6 +217,97 @@ class ReportGen:
         else:
             return None
 
+    def gather_identity_entitlement_data(self, begin_time: str, end_time: str, threshold: int = 70):
+        """
+        Gather CIEM data for AWS, Azure, GCP identities
+
+        Args:
+            begin_time: ISO timestamp
+            end_time: ISO timestamp
+            threshold: Unused entitlement threshold (default 70)
+
+        Returns:
+            Dictionary with CIEM data for all providers or False on error
+        """
+        print('Gathering identity and entitlement data (CIEM)...')
+
+        # Get ALL identities in one query
+        try:
+            self.lacework_interface.use_cache = self.use_cache
+            all_identity_entitlements = self.lacework_interface.get_identity_entitlements(
+                begin_time,
+                end_time
+            )
+        except Exception as e:
+            logger.error(f'Failed to retrieve CIEM data: {str(e)}')
+            logger.error(traceback.format_exc())
+            return False
+
+        if not all_identity_entitlements.data:
+            logger.error("No CIEM data returned. CIEM may not be enabled for this account.")
+            logger.info("Skipping CIEM section in report.")
+            return False
+
+        print(f'Total identities retrieved: {all_identity_entitlements.count_identities()}')
+
+        # Now filter by provider and process each separately
+        ciem_data = {}
+        from modules.identity_entitlements import IdentityEntitlements
+
+        for provider in ['AWS', 'AZURE', 'GCP']:
+            # Filter identities by provider type
+            provider_identities = [identity for identity in all_identity_entitlements.data
+                                   if identity.get('PROVIDER_TYPE') == provider]
+
+            if not provider_identities:
+                logger.warning(f"No CIEM data returned for {provider}")
+                ciem_data[provider] = None
+                continue
+
+            # Create a new IdentityEntitlements object for this provider
+            identity_entitlements = IdentityEntitlements({'data': provider_identities})
+
+            # Get critical identities (root + high privileges)
+            critical_identities = identity_entitlements.get_critical_identities(threshold)
+            high_privilege_identities = identity_entitlements.get_high_privilege_identities(threshold)
+            root_identities = identity_entitlements.get_root_identities()
+
+            print(f'{provider}: Total identities analyzed: {identity_entitlements.count_identities()}')
+            print(f'{provider}: High privilege identities (≥{threshold} unused entitlements): {len(high_privilege_identities)}')
+            print(f'{provider}: Root/admin identities: {len(root_identities)}')
+            print(f'{provider}: Critical (root + ≥{threshold} unused): {len(critical_identities)}')
+
+            # Get all identities for display (top 25)
+            all_identities = identity_entitlements.get_all_identities(limit=25)
+
+            # Process data for this provider
+            ciem_data[provider] = {
+                'high_privilege_count': len(high_privilege_identities),
+                'root_count': len(root_identities),
+                'critical_count': len(critical_identities),
+                'critical_identities': critical_identities,
+                'high_privilege_identities': high_privilege_identities,
+                'root_identities': root_identities,
+                'all_identities': all_identities,
+                'threshold': threshold,
+                'total_identities': identity_entitlements.count_identities()
+            }
+
+        # Check if we got any data from at least one provider
+        providers_with_data = [k for k, v in ciem_data.items() if v is not None]
+
+        if not providers_with_data:
+            logger.error("No CIEM data retrieved for any provider. CIEM may not be enabled for this account.")
+            logger.info("Skipping CIEM section in report.")
+            return False
+
+        if len(providers_with_data) < 3:
+            logger.info(f"CIEM data available for: {', '.join(providers_with_data)}")
+            missing_providers = [k for k, v in ciem_data.items() if v is None]
+            logger.warning(f"No CIEM data for: {', '.join(missing_providers)} (may not be configured)")
+
+        return ciem_data
+
     def gather_data(self,
                  vulns_start_time: LaceworkTime,
                  vulns_end_time: LaceworkTime,

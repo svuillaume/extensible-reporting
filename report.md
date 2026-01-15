@@ -1,4 +1,5 @@
-# Default (70% unused entitlement threshold)
+
+  # Default (70% unused entitlement threshold)
   python lw_report_gen.py \
     --report CSA_Detailed \
     --format HTML \
@@ -19,3 +20,13 @@
     --cache-data \
     --customer "Test" \
     --ciem-threshold 90
+
+  Key Features
+
+  - Dynamic Time Ranges: Uses the --alerts-start-time parameter (7/30/90 days)
+  - Unified Report: CIEM data appears alongside compliance, vulnerabilities, and alerts
+  - Configurable Threshold: Adjust the unused entitlement percentage filter
+  - Multi-Cloud: Analyzes AWS, Azure, and GCP identities
+  - Both Formats: Works with HTML and PDF output
+
+

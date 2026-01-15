@@ -9,3 +9,5 @@ __pycache__/
 /dist/
 /build/
 /.idea/
+och.json
+lw_report_gen.log
