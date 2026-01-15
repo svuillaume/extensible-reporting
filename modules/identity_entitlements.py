@@ -37,17 +37,9 @@ class IdentityEntitlements:
             has_full_admin = 'ALLOWS_FULL_ADMIN' in risks
 
             # Check MFA status from risks
-            has_mfa_disabled = 'MFA_DISABLED' in risks or 'NO_MFA' in risks
-            mfa_status = 'Disabled' if has_mfa_disabled else 'Unknown'
-
-            # Try to get MFA from access keys info if available
-            access_keys = item.get('ACCESS_KEYS', {})
-            if isinstance(access_keys, dict):
-                # Check if MFA is explicitly enabled in access keys
-                if access_keys.get('mfa_enabled') == True:
-                    mfa_status = 'Enabled'
-                elif access_keys.get('mfa_enabled') == False:
-                    mfa_status = 'Disabled'
+            # PASSWORD_LOGIN_NO_MFA indicates user has password login enabled without MFA
+            has_mfa_disabled = 'PASSWORD_LOGIN_NO_MFA' in risks
+            mfa_status = 'Disabled' if has_mfa_disabled else 'Enabled'
 
             processed_data.append({
                 'RECORD_CREATED_TIME': item.get('RECORD_CREATED_TIME', ''),

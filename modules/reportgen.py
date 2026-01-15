@@ -226,7 +226,7 @@ class ReportGen:
         Args:
             begin_time: ISO timestamp
             end_time: ISO timestamp
-            threshold: Unused entitlement threshold (default 70, Azure uses 20)
+            threshold: Unused entitlement threshold (default 70)
 
         Returns:
             Dictionary with CIEM data for all providers or False on error
@@ -259,7 +259,7 @@ class ReportGen:
         # Define per-provider thresholds
         provider_thresholds = {
             'AWS': threshold,
-            'AZURE': 20,  # Azure uses lower threshold of 20
+            'AZURE': threshold,
             'GCP': threshold
         }
 
